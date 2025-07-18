@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt Management</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        input[type="text"], input[type="number"], select {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        button:hover {
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .btn-primary {
+            background-color: #4f46e5;
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: #ffffff;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .btn-print {
+            background-color: #10b981;
+            color: #ffffff;
+        }
+        .btn-print:hover {
+            background-color: #059669;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #4b5563;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+        }
+        tr:hover {
+            background-color: #f3f4f6;
+        }
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            text-align: center;
+            display: none; /* Hidden by default */
+        }
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none; /* Hidden by default */
+        }
+        /* Print specific styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-area, #printable-area * {
+                visibility: visible;
+            }
+            #printable-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 1rem;
+            }
+            .no-print {
+                display: none !important;
+            }
+            table {
+                border: 1px solid #e5e7eb;
+            }
+            th, td {
+                border: 1px solid #e5e7eb;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center text-indigo-700 mb-6">Receipt Management System</h1>
+
+        <!-- User ID Display -->
+        <div class="mb-6 p-4 bg-indigo-50 rounded-lg shadow-sm">
+            <p class="text-sm text-indigo-800">
+                <span class="font-semibold">Your User ID:</span> <span id="userIdDisplay">Loading...</span>
+            </p>
+        </div>
+
+        <!-- Add New Entry Section -->
+        <div class="mb-8 p-6 bg-gray-50 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Add New Receipt Entry</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <label for="receiptNo" class="block text-sm font-medium text-gray-700 mb-1">Receipt No.</label>
+                    <input type="text" id="receiptNo" placeholder="e.g., R001" class="focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                    <input type="number" id="amount" placeholder="e.g., 150.75" step="0.01" class="focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" id="name" placeholder="e.g., John Doe" class="focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="class" class="block text-sm font-medium text-gray-700 mb-1">Class</label>
+                    <input type="text" id="class" placeholder="e.g., Grade 10" class="focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select id="category" class="focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">Select Category</option>
+                        <option value="Tuition">Tuition</option>
+                        <option value="Books">Books</option>
+                        <option value="Fees">Fees</option>
+                        <option value="Supplies">Supplies</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+            <button id="addEntryBtn" class="btn-primary w-full md:w-auto">Add Entry</button>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="mb-8 p-6 bg-gray-50 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Filter Entries</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <label for="filterName" class="block text-sm font-medium text-gray-700 mb-1">Filter by Name</label>
+                    <input type="text" id="filterName" placeholder="e.g., John" class="focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="filterClass" class="block text-sm font-medium text-gray-700 mb-1">Filter by Class</label>
+                    <input type="text" id="filterClass" placeholder="e.g., Grade" class="focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="filterCategory" class="block text-sm font-medium text-gray-700 mb-1">Filter by Category</label>
+                    <select id="filterCategory" class="focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">All Categories</option>
+                        <option value="Tuition">Tuition</option>
+                        <option value="Books">Books</option>
+                        <option value="Fees">Fees</option>
+                        <option value="Supplies">Supplies</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row gap-4">
+                <button id="applyFilterBtn" class="btn-primary w-full md:w-auto">Apply Filters</button>
+                <button id="clearFilterBtn" class="btn-secondary w-full md:w-auto">Clear Filters</button>
+                <button id="printBtn" class="btn-print w-full md:w-auto">Print Visible Data</button>
+            </div>
+        </div>
+
+        <!-- Data Display Section -->
+        <div class="p-6 bg-gray-50 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Receipt Entries</h2>
+            <div id="loadingIndicator" class="text-center text-gray-600 text-lg my-4 hidden">
+                Loading entries...
+            </div>
+            <div class="overflow-x-auto">
+                <table id="receiptTable" class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th>Receipt No.</th>
+                            <th>Amount</th>
+                            <th>Name</th>
+                            <th>Class</th>
+                            <th>Category</th>
+                            <th class="no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receiptTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Data will be loaded here by JavaScript -->
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-gray-500">No entries yet. Add one above!</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="printable-area" class="hidden">
+                <!-- Content for printing will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Box for alerts -->
+    <div id="messageBoxOverlay" class="message-box-overlay"></div>
+    <div id="messageBox" class="message-box">
+        <p id="messageBoxContent" class="text-lg font-medium text-gray-800 mb-4"></p>
+        <button id="messageBoxCloseBtn" class="btn-primary">OK</button>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Firebase imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase (provided by the Canvas environment)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let app;
+        let db;
+        let auth;
+        let currentUserId = null;
+        let allReceipts = []; // Store all fetched receipts for filtering
+
+        // DOM Elements
+        const receiptNoInput = document.getElementById('receiptNo');
+        const amountInput = document.getElementById('amount');
+        const nameInput = document.getElementById('name');
+        const classInput = document.getElementById('class');
+        const categorySelect = document.getElementById('category');
+        const addEntryBtn = document.getElementById('addEntryBtn');
+        const receiptTableBody = document.getElementById('receiptTableBody');
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+
+        const filterNameInput = document.getElementById('filterName');
+        const filterClassInput = document.getElementById('filterClass');
+        const filterCategorySelect = document.getElementById('filterCategory');
+        const applyFilterBtn = document.getElementById('applyFilterBtn');
+        const clearFilterBtn = document.getElementById('clearFilterBtn');
+        const printBtn = document.getElementById('printBtn');
+
+        const messageBox = document.getElementById('messageBox');
+        const messageBoxOverlay = document.getElementById('messageBoxOverlay');
+        const messageBoxContent = document.getElementById('messageBoxContent');
+        const messageBoxCloseBtn = document.getElementById('messageBoxCloseBtn');
+
+        /**
+         * Displays a custom message box.
+         * @param {string} message The message to display.
+         */
+        function showMessageBox(message) {
+            messageBoxContent.textContent = message;
+            messageBoxOverlay.style.display = 'block';
+            messageBox.style.display = 'block';
+        }
+
+        /**
+         * Hides the custom message box.
+         */
+        function hideMessageBox() {
+            messageBoxOverlay.style.display = 'none';
+            messageBox.style.display = 'none';
+        }
+
+        // Event listener for message box close button
+        messageBoxCloseBtn.addEventListener('click', hideMessageBox);
+
+        /**
+         * Initializes Firebase and sets up authentication.
+         */
+        async function initializeFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Listen for auth state changes
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                        userIdDisplay.textContent = currentUserId;
+                        console.log("User authenticated:", currentUserId);
+                        // Once authenticated, start listening for receipts
+                        listenForReceipts();
+                    } else {
+                        // Sign in anonymously if no token, or with token if available
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                        // If still no user after anonymous sign-in (shouldn't happen in Canvas)
+                        if (!auth.currentUser) {
+                            currentUserId = crypto.randomUUID(); // Fallback to a random ID for unauthenticated
+                            userIdDisplay.textContent = `Anonymous (ID: ${currentUserId.substring(0, 8)}...)`;
+                            console.warn("Signed in anonymously or using random ID:", currentUserId);
+                            listenForReceipts(); // Still try to listen for receipts with the generated ID
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                showMessageBox("Failed to initialize the application. Please try again.");
+            }
+        }
+
+        /**
+         * Renders the receipt data into the table.
+         * @param {Array<Object>} receipts The array of receipt objects to render.
+         */
+        function renderReceipts(receipts) {
+            receiptTableBody.innerHTML = ''; // Clear existing entries
+            if (receipts.length === 0) {
+                receiptTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-500">No entries found.</td></tr>`;
+                return;
+            }
+
+            receipts.forEach(receipt => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="py-3 px-4 whitespace-nowrap">${receipt.receiptNo}</td>
+                    <td class="py-3 px-4 whitespace-nowrap">$${receipt.amount.toFixed(2)}</td>
+                    <td class="py-3 px-4 whitespace-nowrap">${receipt.name}</td>
+                    <td class="py-3 px-4 whitespace-nowrap">${receipt.class}</td>
+                    <td class="py-3 px-4 whitespace-nowrap">${receipt.category}</td>
+                    <td class="py-3 px-4 whitespace-nowrap no-print">
+                        <button class="text-red-600 hover:text-red-900 font-medium delete-btn" data-id="${receipt.id}">Delete</button>
+                    </td>
+                `;
+                receiptTableBody.appendChild(row);
+            });
+
+            // Add event listeners for delete buttons
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const idToDelete = event.target.dataset.id;
+                    deleteReceipt(idToDelete);
+                });
+            });
+        }
+
+        /**
+         * Listens for real-time updates from Firestore.
+         */
+        function listenForReceipts() {
+            if (!db || !currentUserId) {
+                console.error("Firestore DB or User ID not available for listening.");
+                return;
+            }
+
+            loadingIndicator.classList.remove('hidden'); // Show loading indicator
+
+            // Define the collection path based on security rules
+            // For public data: /artifacts/{appId}/public/data/receipts
+            // For private data: /artifacts/{appId}/users/{userId}/receipts
+            const receiptsCollectionRef = collection(db, `artifacts/${appId}/users/${currentUserId}/receipts`);
+
+            onSnapshot(receiptsCollectionRef, (snapshot) => {
+                allReceipts = []; // Reset allReceipts array
+                snapshot.forEach(doc => {
+                    allReceipts.push({ id: doc.id, ...doc.data() });
+                });
+                console.log("Fetched receipts:", allReceipts);
+                applyFilters(); // Apply current filters after fetching new data
+                loadingIndicator.classList.add('hidden'); // Hide loading indicator
+            }, (error) => {
+                console.error("Error fetching receipts:", error);
+                showMessageBox("Error loading receipts. Please refresh the page.");
+                loadingIndicator.classList.add('hidden'); // Hide loading indicator
+            });
+        }
+
+        /**
+         * Adds a new receipt entry to Firestore.
+         */
+        addEntryBtn.addEventListener('click', async () => {
+            if (!db || !currentUserId) {
+                showMessageBox("Application not ready. Please wait for initialization.");
+                return;
+            }
+
+            const receiptNo = receiptNoInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+            const name = nameInput.value.trim();
+            const className = classInput.value.trim(); // Renamed to className to avoid conflict with JS 'class' keyword
+            const category = categorySelect.value;
+
+            if (!receiptNo || isNaN(amount) || amount <= 0 || !name || !className || !category) {
+                showMessageBox("Please fill in all fields correctly.");
+                return;
+            }
+
+            try {
+                // Define the collection path based on security rules
+                const receiptsCollectionRef = collection(db, `artifacts/${appId}/users/${currentUserId}/receipts`);
+                await addDoc(receiptsCollectionRef, {
+                    receiptNo,
+                    amount,
+                    name,
+                    class: className, // Store as 'class' in Firestore
+                    category,
+                    timestamp: new Date() // Add a timestamp
+                });
+
+                showMessageBox("Receipt entry added successfully!");
+                // Clear form fields
+                receiptNoInput.value = '';
+                amountInput.value = '';
+                nameInput.value = '';
+                classInput.value = '';
+                categorySelect.value = '';
+
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                showMessageBox("Error adding receipt entry. Please try again.");
+            }
+        });
+
+        /**
+         * Deletes a receipt entry from Firestore.
+         * @param {string} id The ID of the document to delete.
+         */
+        async function deleteReceipt(id) {
+            if (!db || !currentUserId) {
+                showMessageBox("Application not ready. Please wait for initialization.");
+                return;
+            }
+
+            try {
+                // Define the document path based on security rules
+                const docRef = doc(db, `artifacts/${appId}/users/${currentUserId}/receipts`, id);
+                await deleteDoc(docRef);
+                showMessageBox("Receipt entry deleted successfully!");
+            } catch (error) {
+                console.error("Error deleting document: ", error);
+                showMessageBox("Error deleting receipt entry. Please try again.");
+            }
+        }
+
+        /**
+         * Applies filters to the displayed receipts.
+         */
+        function applyFilters() {
+            const filterName = filterNameInput.value.toLowerCase().trim();
+            const filterClass = filterClassInput.value.toLowerCase().trim();
+            const filterCategory = filterCategorySelect.value.trim();
+
+            let filteredReceipts = allReceipts.filter(receipt => {
+                const matchesName = filterName === '' || receipt.name.toLowerCase().includes(filterName);
+                const matchesClass = filterClass === '' || receipt.class.toLowerCase().includes(filterClass);
+                const matchesCategory = filterCategory === '' || receipt.category === filterCategory;
+                return matchesName && matchesClass && matchesCategory;
+            });
+
+            // Sort by timestamp (most recent first)
+            filteredReceipts.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
+
+            renderReceipts(filteredReceipts);
+        }
+
+        // Event listeners for filter buttons
+        applyFilterBtn.addEventListener('click', applyFilters);
+        clearFilterBtn.addEventListener('click', () => {
+            filterNameInput.value = '';
+            filterClassInput.value = '';
+            filterCategorySelect.value = '';
+            applyFilters(); // Re-apply filters to show all
+        });
+
+        /**
+         * Handles printing of the visible data.
+         */
+        printBtn.addEventListener('click', () => {
+            const printableArea = document.getElementById('printable-area');
+            const tableClone = receiptTableBody.cloneNode(true);
+
+            // Remove the 'Actions' column and its content from the cloned table
+            tableClone.querySelectorAll('tr').forEach(row => {
+                const actionCell = row.querySelector('.no-print');
+                if (actionCell) {
+                    actionCell.remove();
+                }
+            });
+
+            // Clone the table header and remove the 'Actions' column
+            const tableHeaderClone = document.querySelector('#receiptTable thead').cloneNode(true);
+            const headerActionCell = tableHeaderClone.querySelector('.no-print');
+            if (headerActionCell) {
+                headerActionCell.remove();
+            }
+
+            printableArea.innerHTML = `
+                <h1 class="text-2xl font-bold text-center mb-4">Receipt Entries Report</h1>
+                <table class="w-full border-collapse border border-gray-300">
+                    <thead>${tableHeaderClone.innerHTML}</thead>
+                    <tbody>${tableClone.innerHTML}</tbody>
+                </table>
+            `;
+
+            // Make printable area visible for printing, then hide it
+            printableArea.classList.remove('hidden');
+            window.print();
+            printableArea.classList.add('hidden');
+        });
+
+        // Initialize Firebase when the window loads
+        window.onload = initializeFirebase;
+    </script>
+</body>
+</html>
