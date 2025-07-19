@@ -12,8 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateEntryButton = document.getElementById('updateEntry');
     const clearFormButton = document.getElementById('clearFormBtn');
     const receiptTableBody = document.querySelector('#receiptTable tbody');
-    const editIndexHidden = document.getElementById('editIndex'); // Hidden field for current receipt edit index
+    const editIndexHidden = document.getElementById('editIndex');
     const printReceiptDataButton = document.getElementById('printReceiptData');
+    const receiptsAppSection = document.getElementById('receipts-app'); // Added for navigation
 
     // --- DOM Elements - Finance Section ---
     const financeDateInput = document.getElementById('financeDate');
@@ -24,15 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateFinanceEntryButton = document.getElementById('updateFinanceEntry');
     const clearFinanceFormButton = document.getElementById('clearFinanceFormBtn');
     const financeTableBody = document.querySelector('#financeTable tbody');
-    const financeEditIndexHidden = document.getElementById('financeEditIndex'); // Hidden field for current finance edit index
+    const financeEditIndexHidden = document.getElementById('financeEditIndex');
     const printFinanceDataButton = document.getElementById('printFinanceData');
+    const financeAppSection = document.getElementById('finance-app'); // Added for navigation
 
     // --- DOM Elements - General & Dashboard ---
+    const navButtons = document.querySelectorAll('.nav-button'); // Added for navigation
     const filterInput = document.getElementById('filterInput');
     const clearFilterButton = document.getElementById('clearFilter');
     const companyNameInput = document.getElementById('companyName');
     const saveCompanyNameButton = document.getElementById('saveCompanyName');
-    const currentDateSpan = document.getElementById('currentDate');
+    const currentDateADSpan = document.getElementById('currentDateAD'); // For AD date display
+    const currentDateBSSpan = document.getElementById('currentDateBS'); // For BS date display
     const currentTimeSpan = document.getElementById('currentTime');
     const totalEntriesCountSpan = document.getElementById('totalEntriesCount');
     const totalAmountSumSpan = document.getElementById('totalAmountSum');
@@ -48,7 +52,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Utility Functions ---
 
-    // Sets today's date as default for the date input fields
+    // Converts AD (Gregorian) date string (YYYY-MM-DD) to Nepali BS date string
+    const convertADToBS = (adDateString) => {
+        if (!adDateString) return '';
+        try {
+            const [year, month, day] = adDateString.split('-').map(Number);
+            // nepalidate.min.js provides new NepaliDate(year, month-1, day)
+            const nepaliDate = new NepaliDate(year, month - 1, day);
+            return `${nepaliDate.getBSYear()}-${(nepaliDate.getBSMonth() + 1).toString().padStart(2, '0')}-${nepaliDate.getBSDay().toString().padStart(2, '0')}`;
+        } catch (e) {
+            console.error("Error converting AD to BS date:", e);
+            return adDateString; // Return original if conversion fails
+        }
+    };
+
+    // Sets today's date as default for the date input fields (AD)
     const setTodayDate = (inputElement) => {
         const today = new Date();
         const year = today.getFullYear();
@@ -60,9 +78,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Updates the dashboard date and time
     const updateDateTime = () => {
         const now = new Date();
-        currentDateSpan.textContent = now.toLocaleDateString('en-US', {
+        currentDateADSpan.textContent = now.toLocaleDateString('en-US', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
         });
+        currentDateBSSpan.textContent = convertADToBS(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`);
         currentTimeSpan.textContent = now.toLocaleTimeString('en-US', {
             hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
         });
@@ -71,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Local Storage Management ---
     const saveReceiptEntries = () => {
         localStorage.setItem('receiptEntries', JSON.stringify(receiptEntries));
-        updateDashboardMetrics(); // Update all dashboard metrics after saving
+        updateDashboardMetrics();
     };
 
     const loadReceiptEntries = () => {
@@ -79,12 +98,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (storedEntries) {
             receiptEntries = JSON.parse(storedEntries);
         }
-        renderReceiptTable(receiptEntries); // Always render all entries on load
+        renderReceiptTable(receiptEntries);
     };
 
     const saveFinanceTransactions = () => {
         localStorage.setItem('financeTransactions', JSON.stringify(financeTransactions));
-        updateDashboardMetrics(); // Update all dashboard metrics after saving
+        updateDashboardMetrics();
     };
 
     const loadFinanceTransactions = () => {
@@ -92,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (storedTransactions) {
             financeTransactions = JSON.parse(storedTransactions);
         }
-        renderFinanceTable(financeTransactions); // Always render all transactions on load
+        renderFinanceTable(financeTransactions);
     };
 
     const saveCategories = () => {
@@ -123,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Category Management ---
     const populateCategorySelect = () => {
-        categorySelect.innerHTML = '<option value="">-- Select Category --</option>'; // Clear existing
+        categorySelect.innerHTML = '<option value="">-- Select Category --</option>';
         categories.forEach(cat => {
             const option = document.createElement('option');
             option.value = cat;
@@ -136,10 +155,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const newCat = newCategoryInput.value.trim();
         if (newCat && !categories.includes(newCat)) {
             categories.push(newCat);
-            categories.sort(); // Keep categories sorted alphabetically
+            categories.sort();
             saveCategories();
             populateCategorySelect();
-            categorySelect.value = newCat; // Select the newly added category
+            categorySelect.value = newCat;
             newCategoryInput.value = '';
         } else if (newCat && categories.includes(newCat)) {
             alert('Category already exists!');
@@ -150,11 +169,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Receipt Table Rendering and Actions ---
     const renderReceiptTable = (dataToRender) => {
-        receiptTableBody.innerHTML = ''; // Clear existing rows
+        receiptTableBody.innerHTML = '';
         if (dataToRender.length === 0 && filterInput.value === '') {
             const noDataRow = receiptTableBody.insertRow();
             const cell = noDataRow.insertCell();
-            cell.colSpan = 7; // Span across all columns
+            cell.colSpan = 7;
             cell.textContent = "No receipt entries yet. Add one above!";
             cell.style.textAlign = 'center';
             cell.style.fontStyle = 'italic';
@@ -163,9 +182,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         dataToRender.forEach((entry, index) => {
             const row = receiptTableBody.insertRow();
-            row.insertCell().textContent = entry.date;
+            row.insertCell().textContent = convertADToBS(entry.date); // Display BS date
             row.insertCell().textContent = entry.receiptNo;
-            row.insertCell().textContent = parseFloat(entry.amount).toFixed(2); // Format amount
+            row.insertCell().textContent = parseFloat(entry.amount).toFixed(2);
             row.insertCell().textContent = entry.name;
             row.insertCell().textContent = entry.class;
             row.insertCell().textContent = entry.category;
@@ -185,7 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
             deleteButton.textContent = 'Delete';
             deleteButton.classList.add('delete-btn');
             deleteButton.addEventListener('click', () => {
-                // Pass the original index from the 'receiptEntries' array
                 const originalIndex = receiptEntries.findIndex(e =>
                     e.receiptNo === entry.receiptNo &&
                     e.amount === entry.amount &&
@@ -200,16 +218,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             actionsCell.appendChild(deleteButton);
         });
-        updateDashboardMetrics(); // Update all dashboard metrics after rendering table
+        updateDashboardMetrics();
     };
 
     // --- Finance Table Rendering and Actions ---
     const renderFinanceTable = (dataToRender) => {
-        financeTableBody.innerHTML = ''; // Clear existing rows
+        financeTableBody.innerHTML = '';
         if (dataToRender.length === 0 && filterInput.value === '') {
             const noDataRow = financeTableBody.insertRow();
             const cell = noDataRow.insertCell();
-            cell.colSpan = 5; // Span across all columns
+            cell.colSpan = 5;
             cell.textContent = "No finance transactions yet. Add one above!";
             cell.style.textAlign = 'center';
             cell.style.fontStyle = 'italic';
@@ -218,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         dataToRender.forEach((transaction, index) => {
             const row = financeTableBody.insertRow();
-            row.insertCell().textContent = transaction.date;
+            row.insertCell().textContent = convertADToBS(transaction.date); // Display BS date
             row.insertCell().textContent = transaction.description;
             row.insertCell().textContent = parseFloat(transaction.amount).toFixed(2);
             row.insertCell().textContent = transaction.type;
@@ -238,7 +256,6 @@ document.addEventListener('DOMContentLoaded', () => {
             deleteButton.textContent = 'Delete';
             deleteButton.classList.add('delete-btn');
             deleteButton.addEventListener('click', () => {
-                // Pass the original index from the 'financeTransactions' array
                 const originalIndex = financeTransactions.findIndex(t =>
                     t.date === transaction.date &&
                     t.description === transaction.description &&
@@ -251,12 +268,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             actionsCell.appendChild(deleteButton);
         });
-        updateDashboardMetrics(); // Update all dashboard metrics after rendering table
+        updateDashboardMetrics();
     };
 
     // --- CRUD Operations - Receipts ---
     addEntryButton.addEventListener('click', () => {
-        const date = receiptDateInput.value;
+        const date = receiptDateInput.value; // Store as AD date string
         const receiptNo = receiptNoInput.value.trim();
         const amount = parseFloat(amountInput.value.trim());
         const name = nameInput.value.trim();
@@ -283,13 +300,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const editReceiptEntry = (entry, index) => {
-        receiptDateInput.value = entry.date;
+        receiptDateInput.value = entry.date; // Populate with AD date string
         receiptNoInput.value = entry.receiptNo;
         amountInput.value = entry.amount;
         nameInput.value = entry.name;
         classInput.value = entry.class;
         categorySelect.value = entry.category;
-        editIndexHidden.value = index; // Store the index of the entry being edited
+        editIndexHidden.value = index;
 
         addEntryButton.style.display = 'none';
         updateEntryButton.style.display = 'inline-block';
@@ -303,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const date = receiptDateInput.value;
+        const date = receiptDateInput.value; // Store as AD date string
         const receiptNo = receiptNoInput.value.trim();
         const amount = parseFloat(amountInput.value.trim());
         const name = nameInput.value.trim();
@@ -320,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 category
             };
             saveReceiptEntries();
-            renderReceiptTable(receiptEntries); // Re-render the table with updated data
+            renderReceiptTable(receiptEntries);
             clearReceiptForm();
             addEntryButton.style.display = 'inline-block';
             updateEntryButton.style.display = 'none';
@@ -332,11 +349,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const deleteReceiptEntry = (indexToDelete) => {
         if (confirm('Are you sure you want to delete this receipt entry?')) {
-            receiptEntries.splice(indexToDelete, 1); // Remove 1 element at indexToDelete
+            receiptEntries.splice(indexToDelete, 1);
             saveReceiptEntries();
-            // Re-apply current filter after deletion, or show all if no filter
-            applyFilter();
-            clearReceiptForm(); // Clear form just in case deleted entry was being edited
+            applyFilter(); // Re-apply current filter after deletion, or show all if no filter
+            clearReceiptForm();
             addEntryButton.style.display = 'inline-block';
             updateEntryButton.style.display = 'none';
             alert('Receipt entry deleted!');
@@ -345,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- CRUD Operations - Finance ---
     addFinanceEntryButton.addEventListener('click', () => {
-        const date = financeDateInput.value;
+        const date = financeDateInput.value; // Store as AD date string
         const description = financeDescriptionInput.value.trim();
         const amount = parseFloat(financeAmountInput.value.trim());
         const type = financeTypeSelect.value;
@@ -368,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const editFinanceTransaction = (transaction, index) => {
-        financeDateInput.value = transaction.date;
+        financeDateInput.value = transaction.date; // Populate with AD date string
         financeDescriptionInput.value = transaction.description;
         financeAmountInput.value = transaction.amount;
         financeTypeSelect.value = transaction.type;
@@ -386,7 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const date = financeDateInput.value;
+        const date = financeDateInput.value; // Store as AD date string
         const description = financeDescriptionInput.value.trim();
         const amount = parseFloat(financeAmountInput.value.trim());
         const type = financeTypeSelect.value;
@@ -424,13 +440,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Form Handling ---
     const clearReceiptForm = () => {
-        setTodayDate(receiptDateInput); // Reset date to today
+        setTodayDate(receiptDateInput);
         receiptNoInput.value = '';
         amountInput.value = '';
         nameInput.value = '';
         classInput.value = '';
-        categorySelect.value = ''; // Reset select
-        editIndexHidden.value = ''; // Clear hidden index
+        categorySelect.value = '';
+        editIndexHidden.value = '';
         addEntryButton.style.display = 'inline-block';
         updateEntryButton.style.display = 'none';
     };
@@ -478,10 +494,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Print Functionality ---
-    printReceiptDataButton.addEventListener('click', () => {
-        const tableToPrint = document.getElementById('receiptTable');
+    const printTable = (tableId, title) => {
+        const tableToPrint = document.getElementById(tableId);
         const printWindow = window.open('', '', 'height=600,width=800');
-        printWindow.document.write('<html><head><title>Receipt Data</title>');
+        printWindow.document.write('<html><head><title>' + title + '</title>');
         printWindow.document.write('<style>');
         printWindow.document.write('body { font-family: Arial, sans-serif; margin: 20px; }');
         printWindow.document.write('.print-company-title { text-align: center; font-size: 1.8em; font-weight: bold; margin-bottom: 25px; color: #333; }');
@@ -495,36 +511,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (companyName) {
             printWindow.document.write(`<div class="print-company-title">${companyName}</div>`);
         }
-        printWindow.document.write('<h2>Receipt Entries Report</h2>');
+        printWindow.document.write('<h2>' + title + '</h2>');
         printWindow.document.write(tableToPrint.outerHTML);
         printWindow.document.write('</body></html>');
         printWindow.document.close();
         printWindow.print();
-    });
+    };
 
-    printFinanceDataButton.addEventListener('click', () => {
-        const tableToPrint = document.getElementById('financeTable');
-        const printWindow = window.open('', '', 'height=600,width=800');
-        printWindow.document.write('<html><head><title>Finance Data</title>');
-        printWindow.document.write('<style>');
-        printWindow.document.write('body { font-family: Arial, sans-serif; margin: 20px; }');
-        printWindow.document.write('.print-company-title { text-align: center; font-size: 1.8em; font-weight: bold; margin-bottom: 25px; color: #333; }');
-        printWindow.document.write('h2 { text-align: center; margin-bottom: 15px; color: #555; }');
-        printWindow.document.write('table { width: 100%; border-collapse: collapse; margin-top: 20px; }');
-        printWindow.document.write('table th, table td { border: 1px solid #ccc; padding: 10px; text-align: left; }');
-        printWindow.document.write('table th { background-color: #f0f0f0; }');
-        printWindow.document.write('</style>');
-        printWindow.document.write('</head><body>');
+    printReceiptDataButton.addEventListener('click', () => printTable('receiptTable', 'Receipt Entries Report'));
+    printFinanceDataButton.addEventListener('click', () => printTable('financeTable', 'Income/Expense Report'));
 
-        if (companyName) {
-            printWindow.document.write(`<div class="print-company-title">${companyName}</div>`);
-        }
-        printWindow.document.write('<h2>Income/Expense Report</h2>');
-        printWindow.document.write(tableToPrint.outerHTML);
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
-        printWindow.print();
-    });
 
     // --- Dashboard Updates ---
     const updateTotalEntriesCount = () => {
@@ -533,7 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updateTotalAmountSum = () => {
         const total = receiptEntries.reduce((sum, entry) => sum + (parseFloat(entry.amount) || 0), 0);
-        totalAmountSumSpan.textContent = total.toFixed(2); // Format to 2 decimal places
+        totalAmountSumSpan.textContent = total.toFixed(2);
     };
 
     const calculateFinanceTotals = () => {
@@ -554,7 +550,6 @@ document.addEventListener('DOMContentLoaded', () => {
         totalExpensesSpan.textContent = totalExpenses.toFixed(2);
         netBalanceSpan.textContent = netBalance.toFixed(2);
 
-        // Optionally, color the net balance
         if (netBalance < 0) {
             netBalanceSpan.style.color = 'red';
         } else if (netBalance > 0) {
@@ -571,16 +566,41 @@ document.addEventListener('DOMContentLoaded', () => {
         calculateFinanceTotals();
     };
 
+    // --- Navigation Functionality ---
+    navButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetAppId = button.dataset.target;
+
+            // Remove active class from all buttons and hide all sections
+            navButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.app-section').forEach(section => section.classList.remove('active-app'));
+
+            // Add active class to clicked button and show target section
+            button.classList.add('active');
+            document.getElementById(targetAppId).classList.add('active-app');
+
+            // Clear filter and re-render tables when switching apps
+            filterInput.value = '';
+            renderReceiptTable(receiptEntries);
+            renderFinanceTable(financeTransactions);
+        });
+    });
+
+
     // --- Initializations on Load ---
     const initializeApp = () => {
         setTodayDate(receiptDateInput);
-        setTodayDate(financeDateInput); // Set date for finance input
+        setTodayDate(financeDateInput);
         loadCategories();
-        loadReceiptEntries(); // This will also call renderReceiptTable and consequently updateDashboardMetrics
-        loadFinanceTransactions(); // This will also call renderFinanceTable and consequently updateDashboardMetrics
+        loadReceiptEntries();
+        loadFinanceTransactions();
         loadCompanyName();
         updateDateTime();
         setInterval(updateDateTime, 1000); // Update time every second
+
+        // Set initial active application (Receipts by default)
+        receiptsAppSection.classList.add('active-app');
+        document.querySelector('.nav-button[data-target="receipts-app"]').classList.add('active');
     };
 
     initializeApp();
