@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Integrated Management System</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Nepali Date Picker CSS -->
     <link href="https://nepalidatepicker.sajanmaharjan.com.np/nepali.datepicker.v3.7.min.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
-    <!-- Custom Alert/Message Box -->
     <div id="customAlert" class="custom-alert-overlay" style="display: none;">
         <div class="custom-alert-box">
             <p id="customAlertMessage"></p>
@@ -17,7 +15,6 @@
         </div>
     </div>
 
-    <!-- Login/Auth Section - "Beautiful Homepage" -->
     <div id="auth-section" class="auth-container">
         <div class="company-branding">
             <h1><span id="displayCompanyNameAuth">Your Company Name</span></h1>
@@ -43,7 +40,6 @@
         </div>
     </div>
 
-    <!-- Main Application Container -->
     <div id="main-app-container" class="container" style="display: none;">
         <header>
             <h1><span id="displayCompanyName">Your Company Name</span></h1>
@@ -51,23 +47,17 @@
                 <p>Address: <span id="displayCompanyAddress">Your Company Address</span></p>
                 <p>Contact: <span id="displayCompanyContact">Your Company Contact No</span></p>
             </div>
-            <h2 id="currentAppName">Receipts</h2> <!-- Default app name -->
-            <div class="dashboard">
+            <h2 id="currentAppName">Dashboard</h2> <div class="header-info">
                 <div class="datetime">
                     <span id="currentDateAD"></span> | <span id="currentDateBS"></span> | <span id="currentTime"></span>
-                </div>
-                <div class="total-info">
-                    Total Receipts: <span id="totalEntriesCount">0</span> | Receipt Amount: <span id="totalAmountSum">0.00</span>
-                </div>
-                <div class="finance-summary">
-                    Income: <span id="totalIncome">0.00</span> | Expenses: <span id="totalExpenses">0.00</span> | Net Balance: <span id="netBalance">0.00</span>
                 </div>
                 <button id="logoutButton" class="logout-btn">Logout</button>
             </div>
         </header>
 
         <nav class="main-nav">
-            <button class="nav-button active" data-target="receipts-app" data-app-name="Receipts">Receipts</button>
+            <button class="nav-button active" data-target="dashboard-app" data-app-name="Dashboard">Dashboard</button>
+            <button class="nav-button" data-target="receipts-app" data-app-name="Receipts">Receipts</button>
             <button class="nav-button" data-target="finance-app" data-app-name="Finance">Finance</button>
             <button class="nav-button" data-target="visitors-app" data-app-name="Visitors">Visitors</button>
             <button class="nav-button" data-target="complains-app" data-app-name="Complains">Complains</button>
@@ -77,8 +67,42 @@
 
         <hr>
 
-        <!-- Receipts Application Section -->
-        <div id="receipts-app" class="app-section active-app">
+        <div id="dashboard-app" class="app-section active-app">
+            <div class="dashboard-overview">
+                <h3>System Overview</h3>
+                <div class="metric-cards">
+                    <div class="card receipt-card">
+                        <h4>Total Receipts</h4>
+                        <p id="dashboardTotalEntriesCount">0</p>
+                        <p>Amount: <span id="dashboardTotalAmountSum">0.00</span></p>
+                    </div>
+                    <div class="card finance-income-card">
+                        <h4>Total Income</h4>
+                        <p id="dashboardTotalIncome">0.00</p>
+                    </div>
+                    <div class="card finance-expense-card">
+                        <h4>Total Expenses</h4>
+                        <p id="dashboardTotalExpenses">0.00</p>
+                    </div>
+                    <div class="card finance-balance-card">
+                        <h4>Net Balance</h4>
+                        <p id="dashboardNetBalance">0.00</p>
+                    </div>
+                    <div class="card visitors-card">
+                        <h4>Total Visitors</h4>
+                        <p id="dashboardTotalVisitors">0</p>
+                        <p>Today: <span id="dashboardVisitorsToday">0</span></p>
+                    </div>
+                    <div class="card complains-card">
+                        <h4>Total Complains</h4>
+                        <p id="dashboardTotalComplains">0</p>
+                        <p>Pending: <span id="dashboardPendingComplains">0</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="receipts-app" class="app-section">
             <div class="input-section">
                 <h3>Add/Edit Receipt Entry</h3>
                 <input type="hidden" id="editIndex">
@@ -134,14 +158,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Receipt Data will be inserted here by JavaScript -->
-                    </tbody>
+                        </tbody>
                 </table>
                 <button id="printReceiptData">Print Receipt Data</button>
             </div>
         </div>
 
-        <!-- Finance Application Section -->
         <div id="finance-app" class="app-section">
             <div class="input-section finance-section">
                 <h3>Add/Edit Income/Expense</h3>
@@ -184,14 +206,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Finance Data will be inserted here by JavaScript -->
-                    </tbody>
+                        </tbody>
                 </table>
                 <button id="printFinanceData">Print Finance Data</button>
             </div>
         </div>
 
-        <!-- Visitors Application Section -->
         <div id="visitors-app" class="app-section">
             <div class="input-section visitor-section">
                 <h3>Add/Edit Visitor Entry</h3>
@@ -233,14 +253,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Visitor Data will be inserted here by JavaScript -->
-                    </tbody>
+                        </tbody>
                 </table>
                 <button id="printVisitorData">Print Visitor Data</button>
             </div>
         </div>
 
-        <!-- Complains Application Section -->
         <div id="complains-app" class="app-section">
             <div class="input-section complain-section">
                 <h3>Add/Edit Complain Entry</h3>
@@ -284,14 +302,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Complain Data will be inserted here by JavaScript -->
-                    </tbody>
+                        </tbody>
                 </table>
                 <button id="printComplainData">Print Complain Data</button>
             </div>
         </div>
 
-        <!-- Daybook Application Section (New) -->
         <div id="daybook-app" class="app-section">
             <div class="input-section daybook-section">
                 <h3>Add/Edit Daybook Entry</h3>
@@ -334,14 +350,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Daybook Data will be inserted here by JavaScript -->
-                    </tbody>
+                        </tbody>
                 </table>
                 <button id="printDaybookData">Print Daybook Data</button>
             </div>
         </div>
 
-        <!-- Settings Application Section -->
         <div id="settings-app" class="app-section">
             <div class="settings-section input-section">
                 <h3>General Settings</h3>
@@ -366,18 +380,14 @@
         </div>
     </div>
 
-    <!-- Footer Message -->
     <footer class="app-footer">
         <p>This application is generated by: Prakash Bhandari | Contact: 9851234157</p>
     </footer>
 
-    <!-- Firebase SDKs - IMPORTANT: Include these BEFORE your script.js -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <!-- Nepali Date Picker JS -->
     <script src="https://nepalidatepicker.sajanmaharjan.com.np/nepali.datepicker.v3.7.min.js" type="text/javascript"></script>
 
-    <!-- Your main application script -->
     <script src="script.js"></script>
 </body>
 </html>
