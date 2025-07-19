@@ -1354,6 +1354,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Set current time for relevant time inputs
         setCurrentTime(timeInInput);
+        // Clear time out initially
+        timeOutInput.value = '';
 
         // Start time update
         updateDateTime();
