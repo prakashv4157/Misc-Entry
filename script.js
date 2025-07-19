@@ -1,3 +1,21 @@
+// --- Firebase Configuration ---
+// IMPORTANT: Replace with your actual Firebase project configuration!
+// You get this from your Firebase project settings -> "Add app" -> "Web"
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID",
+    // measurementId: "YOUR_MEASUREMENT_ID" // Optional
+};
+
+// Initialize Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const auth = app.auth();
+const db = app.firestore(); // Firestore database instance
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- Global DOM Elements ---
     const displayCompanyName = document.getElementById('displayCompanyName');
@@ -11,33 +29,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentDateBSSpan = document.getElementById('currentDateBS');
     const currentTimeSpan = document.getElementById('currentTime');
     const mainAppContainer = document.getElementById('main-app-container');
-    const loginSection = document.getElementById('login-section');
+    const authSection = document.getElementById('auth-section'); // Renamed from loginSection
     const logoutButton = document.getElementById('logoutButton');
 
-    // --- Login DOM Elements ---
-    const loginUsernameInput = document.getElementById('loginUsername');
+    // --- Auth Forms DOM Elements ---
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const resetPasswordForm = document.getElementById('reset-password-form');
+
+    const loginEmailInput = document.getElementById('loginEmail');
     const loginPasswordInput = document.getElementById('loginPassword');
     const loginButton = document.getElementById('loginButton');
+    const googleLoginButton = document.getElementById('googleLoginButton'); // New Google button
+
+    const registerEmailInput = document.getElementById('registerEmail');
+    const registerPasswordInput = document.getElementById('registerPassword');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const registerButton = document.getElementById('registerButton');
+
+    const resetEmailInput = document.getElementById('resetEmail');
+    const resetPasswordButton = document.getElementById('resetPasswordButton');
+
+    const showRegisterLink = document.getElementById('showRegister');
+    const showResetPasswordLink = document.getElementById('showResetPassword');
+    const showLoginFromRegisterLink = document.getElementById('showLoginFromRegister');
+    const showLoginFromResetLink = document.getElementById('showLoginFromReset');
 
     // --- Custom Alert DOM Elements ---
     const customAlertOverlay = document.getElementById('customAlert');
     const customAlertMessage = document.getElementById('customAlertMessage');
     const customAlertCloseBtn = document.getElementById('customAlertCloseBtn');
 
-    // --- Data Storage ---
-    // IMPORTANT: For a real application, these credentials would be securely stored on a server.
-    // This is a client-side demo only and NOT secure.
-    const VALID_USERNAME = 'user';
-    const VALID_PASSWORD = 'password';
-    const DEMO_USER_ID = 'demoUser123'; // A fixed ID for this client-side demo user
-
-    let currentUser = null; // Will store the ID of the logged-in user
+    // --- Data Storage (will now be loaded/saved from Firestore) ---
+    let currentUser = null; // Will store Firebase Auth user object (or null)
     let receiptEntries = [];
     let financeTransactions = [];
     let visitors = [];
     let complains = [];
-    let categories = ['Tuition', 'Books', 'Fees', 'Supplies', 'Other'];
-    let companyName = "Your Company Name";
+    let categories = ['Tuition', 'Books', 'Fees', 'Supplies', 'Other']; // Global categories (can be user-specific if needed)
+    let companyName = "Your Company Name"; // Global company name (can be user-specific if needed)
 
     // --- Receipt Section DOM Elements ---
     const receiptsAppSection = document.getElementById('receipts-app');
@@ -107,7 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
         customAlertMessage.textContent = message;
         customAlertOverlay.style.display = 'flex';
     };
-
     customAlertCloseBtn.addEventListener('click', () => {
         customAlertOverlay.style.display = 'none';
     });
@@ -145,73 +174,72 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- Local Storage Management (User-specific keys) ---
-    const getStorageKey = (key) => `${key}_${currentUser}`;
-
-    const saveReceiptEntries = () => {
-        if (currentUser) localStorage.setItem(getStorageKey('receiptEntries'), JSON.stringify(receiptEntries));
-        updateDashboardMetrics();
-    };
-
-    const loadReceiptEntries = () => {
-        if (!currentUser) { receiptEntries = []; return; } // No user, no data
-        const storedEntries = localStorage.getItem(getStorageKey('receiptEntries'));
-        if (storedEntries) {
-            receiptEntries = JSON.parse(storedEntries);
-        } else {
-            receiptEntries = [];
+    // --- Firestore Data Management ---
+    // Data will be stored under /users/{uid}/{collectionName}
+    const getUserCollectionRef = (collectionName) => {
+        if (!currentUser || !currentUser.uid) {
+            // No alert here, as this function is called on startup before user is confirmed
+            // and `onAuthStateChanged` handles the redirect.
+            return null;
         }
-        renderReceiptTable(receiptEntries);
+        return db.collection('users').doc(currentUser.uid).collection(collectionName);
     };
 
-    const saveFinanceTransactions = () => {
-        if (currentUser) localStorage.setItem(getStorageKey('financeTransactions'), JSON.stringify(financeTransactions));
-        updateDashboardMetrics();
-    };
+    // Generic save function for any collection (replaces entire collection for simplicity)
+    // In a real app, you'd add/update/delete individual documents more granularly.
+    const saveDataToFirestore = async (collectionName, dataArray) => {
+        const collectionRef = getUserCollectionRef(collectionName);
+        if (!collectionRef) return;
 
-    const loadFinanceTransactions = () => {
-        if (!currentUser) { financeTransactions = []; return; }
-        const storedTransactions = localStorage.getItem(getStorageKey('financeTransactions'));
-        if (storedTransactions) {
-            financeTransactions = JSON.parse(storedTransactions);
-        } else {
-            financeTransactions = [];
+        try {
+            const snapshot = await collectionRef.get();
+            const batch = db.batch();
+
+            // Delete existing documents in the collection
+            snapshot.docs.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+
+            // Add all current data from the array to Firestore
+            dataArray.forEach(item => {
+                // Use existing 'id' if available (for updates), otherwise let Firestore generate
+                const docRef = item.id ? collectionRef.doc(item.id) : collectionRef.doc();
+                batch.set(docRef, item);
+            });
+            await batch.commit();
+            console.log(`Data for ${collectionName} saved to Firestore.`);
+        } catch (error) {
+            console.error(`Error saving ${collectionName} to Firestore:`, error);
+            showAlert(`Error saving ${collectionName} data: ${error.message}`);
         }
-        renderFinanceTable(financeTransactions);
     };
 
-    const saveVisitors = () => {
-        if (currentUser) localStorage.setItem(getStorageKey('visitors'), JSON.stringify(visitors));
-    };
+    // Generic load function for any collection
+    const loadDataFromFirestore = async (collectionName) => {
+        const collectionRef = getUserCollectionRef(collectionName);
+        if (!collectionRef) return [];
 
-    const loadVisitors = () => {
-        if (!currentUser) { visitors = []; return; }
-        const storedVisitors = localStorage.getItem(getStorageKey('visitors'));
-        if (storedVisitors) {
-            visitors = JSON.parse(storedVisitors);
-        } else {
-            visitors = [];
+        try {
+            const snapshot = await collectionRef.get();
+            const loadedData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            console.log(`Data for ${collectionName} loaded from Firestore.`);
+            return loadedData;
+        } catch (error) {
+            console.error(`Error loading ${collectionName} from Firestore:`, error);
+            showAlert(`Error loading ${collectionName} data: ${error.message}`);
+            return [];
         }
-        renderVisitorTable(visitors);
     };
 
-    const saveComplains = () => {
-        if (currentUser) localStorage.setItem(getStorageKey('complains'), JSON.stringify(complains));
-    };
+    // Individual save wrappers
+    const saveReceiptEntries = () => saveDataToFirestore('receipts', receiptEntries);
+    const saveFinanceTransactions = () => saveDataToFirestore('finance', financeTransactions);
+    const saveVisitors = () => saveDataToFirestore('visitors', visitors);
+    const saveComplains = () => saveDataToFirestore('complains', complains);
 
-    const loadComplains = () => {
-        if (!currentUser) { complains = []; return; }
-        const storedComplains = localStorage.getItem(getStorageKey('complains'));
-        if (storedComplains) {
-            complains = JSON.parse(storedComplains);
-        } else {
-            complains = [];
-        }
-        renderComplainTable(complains);
-    };
-
+    // Categories and Company Name are global in this version (saved to localStorage)
+    // To make them user-specific in Firestore, you'd need separate Firestore logic for them.
     const saveCategories = () => {
-        // Categories are global, not user-specific in this demo
         localStorage.setItem('receiptCategories', JSON.stringify(categories));
     };
 
@@ -224,7 +252,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const saveCompanyNameSetting = () => {
-        // Company name is global, not user-specific
+        // If companyName needs to be user-specific and in Firestore:
+        // if (!currentUser) { showAlert("Not logged in. Cannot save company name."); return; }
+        // db.collection('users').doc(currentUser.uid).set({ companyName: companyNameInput.value.trim() }, { merge: true });
         localStorage.setItem('receiptCompanyName', companyNameInput.value.trim());
         companyName = companyNameInput.value.trim();
         displayCompanyName.textContent = companyName;
@@ -232,6 +262,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const loadCompanyNameSetting = () => {
+        // If companyName needs to be user-specific and in Firestore:
+        // const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        // if (userDoc.exists && userDoc.data().companyName) { ... }
         const storedCompanyName = localStorage.getItem('receiptCompanyName');
         if (storedCompanyName) {
             companyName = storedCompanyName;
@@ -280,6 +313,9 @@ document.addEventListener('DOMContentLoaded', () => {
             cell.style.padding = '20px';
         }
 
+        // Sort by date (newest first)
+        dataToRender.sort((a, b) => new Date(b.date) - new Date(a.date));
+
         dataToRender.forEach((entry, index) => {
             const row = receiptTableBody.insertRow();
             row.insertCell().textContent = convertADToBS(entry.date);
@@ -300,13 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Delete';
             deleteButton.classList.add('delete-btn');
-            deleteButton.addEventListener('click', () => {
-                // Find original index in the unfiltered array
-                const originalIndex = receiptEntries.findIndex(e =>
-                    e.receiptNo === entry.receiptNo && e.amount === entry.amount && e.date === entry.date
-                );
-                if (originalIndex !== -1) deleteReceiptEntry(originalIndex);
-            });
+            deleteButton.addEventListener('click', () => deleteReceiptEntry(entry.id)); // Use Firestore ID for deletion
             actionsCell.appendChild(deleteButton);
         });
         updateDashboardMetrics();
@@ -323,6 +353,8 @@ document.addEventListener('DOMContentLoaded', () => {
             cell.style.fontStyle = 'italic';
             cell.style.padding = '20px';
         }
+
+        dataToRender.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         dataToRender.forEach((transaction, index) => {
             const row = financeTableBody.insertRow();
@@ -342,12 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Delete';
             deleteButton.classList.add('delete-btn');
-            deleteButton.addEventListener('click', () => {
-                const originalIndex = financeTransactions.findIndex(t =>
-                    t.date === transaction.date && t.description === transaction.description && t.amount === transaction.amount
-                );
-                if (originalIndex !== -1) deleteFinanceTransaction(originalIndex);
-            });
+            deleteButton.addEventListener('click', () => deleteFinanceTransaction(transaction.id)); // Use Firestore ID for deletion
             actionsCell.appendChild(deleteButton);
         });
         updateDashboardMetrics();
@@ -364,6 +391,8 @@ document.addEventListener('DOMContentLoaded', () => {
             cell.style.fontStyle = 'italic';
             cell.style.padding = '20px';
         }
+
+        dataToRender.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         dataToRender.forEach((visitor, index) => {
             const row = visitorTableBody.insertRow();
@@ -385,12 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Delete';
             deleteButton.classList.add('delete-btn');
-            deleteButton.addEventListener('click', () => {
-                const originalIndex = visitors.findIndex(v =>
-                    v.date === visitor.date && v.name === visitor.name && v.timeIn === visitor.timeIn
-                );
-                if (originalIndex !== -1) deleteVisitorEntry(originalIndex);
-            });
+            deleteButton.addEventListener('click', () => deleteVisitorEntry(visitor.id)); // Use Firestore ID for deletion
             actionsCell.appendChild(deleteButton);
         });
     };
@@ -406,6 +430,8 @@ document.addEventListener('DOMContentLoaded', () => {
             cell.style.fontStyle = 'italic';
             cell.style.padding = '20px';
         }
+
+        dataToRender.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         dataToRender.forEach((complain, index) => {
             const row = complainTableBody.insertRow();
@@ -426,18 +452,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Delete';
             deleteButton.classList.add('delete-btn');
-            deleteButton.addEventListener('click', () => {
-                const originalIndex = complains.findIndex(c =>
-                    c.date === complain.date && c.complainantName === complain.complainantName && c.details === complain.details
-                );
-                if (originalIndex !== -1) deleteComplainEntry(originalIndex);
-            });
+            deleteButton.addEventListener('click', () => deleteComplainEntry(complain.id)); // Use Firestore ID for deletion
             actionsCell.appendChild(deleteButton);
         });
     };
 
     // --- CRUD Operations - Receipts ---
-    addEntryButton.addEventListener('click', () => {
+    addEntryButton.addEventListener('click', async () => {
         const date = receiptDateInput.value;
         const receiptNo = receiptNoInput.value.trim();
         const amount = parseFloat(amountInput.value.trim());
@@ -447,11 +468,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (date && receiptNo && !isNaN(amount) && name && classVal && category) {
             const newEntry = { date, receiptNo, amount, name, class: classVal, category };
-            receiptEntries.push(newEntry);
-            saveReceiptEntries();
-            renderReceiptTable(receiptEntries);
-            clearReceiptForm();
-            showAlert('Receipt entry added successfully!');
+            try {
+                const docRef = await getUserCollectionRef('receipts').add(newEntry); // Add to Firestore
+                receiptEntries.push({ id: docRef.id, ...newEntry }); // Add with Firestore ID
+                saveReceiptEntries(); // Re-sync all data (simple for demo)
+                applyFilter(); // Re-render table with new data
+                clearReceiptForm();
+                showAlert('Receipt entry added successfully!');
+            } catch (error) {
+                console.error("Error adding receipt:", error);
+                showAlert(`Error adding receipt: ${error.message}`);
+            }
         } else {
             showAlert('Please fill in all receipt fields correctly (Amount must be a number, Category must be selected).');
         }
@@ -464,15 +491,15 @@ document.addEventListener('DOMContentLoaded', () => {
         nameInput.value = entry.name;
         classInput.value = entry.class;
         categorySelect.value = entry.category;
-        editIndexHidden.value = index;
+        editIndexHidden.value = entry.id; // Store Firestore ID for editing
 
         addEntryButton.style.display = 'none';
         updateEntryButton.style.display = 'inline-block';
     };
 
-    updateEntryButton.addEventListener('click', () => {
-        const indexToUpdate = parseInt(editIndexHidden.value);
-        if (isNaN(indexToUpdate) || indexToUpdate < 0 || indexToUpdate >= receiptEntries.length) {
+    updateEntryButton.addEventListener('click', async () => {
+        const docIdToUpdate = editIndexHidden.value;
+        if (!docIdToUpdate) {
             showAlert('Error: No receipt entry selected for update.'); return;
         }
 
@@ -484,32 +511,49 @@ document.addEventListener('DOMContentLoaded', () => {
         const category = categorySelect.value;
 
         if (date && receiptNo && !isNaN(amount) && name && classVal && category) {
-            receiptEntries[indexToUpdate] = { date, receiptNo, amount, name, class: classVal, category };
-            saveReceiptEntries();
-            renderReceiptTable(receiptEntries);
-            clearReceiptForm();
-            addEntryButton.style.display = 'inline-block';
-            updateEntryButton.style.display = 'none';
-            showAlert('Receipt entry updated successfully!');
+            const updatedEntry = { date, receiptNo, amount, name, class: classVal, category };
+            try {
+                await getUserCollectionRef('receipts').doc(docIdToUpdate).update(updatedEntry); // Update in Firestore
+                // Update local array
+                const indexInArray = receiptEntries.findIndex(e => e.id === docIdToUpdate);
+                if (indexInArray !== -1) {
+                    receiptEntries[indexInArray] = { id: docIdToUpdate, ...updatedEntry };
+                }
+                saveReceiptEntries(); // Re-sync all data (simple for demo)
+                applyFilter(); // Re-render table with updated data
+                clearReceiptForm();
+                addEntryButton.style.display = 'inline-block';
+                updateEntryButton.style.display = 'none';
+                showAlert('Receipt entry updated successfully!');
+            } catch (error) {
+                console.error("Error updating receipt:", error);
+                showAlert(`Error updating receipt: ${error.message}`);
+            }
         } else {
             showAlert('Please fill in all receipt fields correctly for update.');
         }
     });
 
-    const deleteReceiptEntry = (indexToDelete) => {
-        if (confirm('Are you sure you want to delete this receipt entry?')) { // Using native confirm for delete
-            receiptEntries.splice(indexToDelete, 1);
-            saveReceiptEntries();
-            applyFilter();
-            clearReceiptForm();
-            addEntryButton.style.display = 'inline-block';
-            updateEntryButton.style.display = 'none';
-            showAlert('Receipt entry deleted!');
+    const deleteReceiptEntry = async (docIdToDelete) => {
+        if (confirm('Are you sure you want to delete this receipt entry?')) {
+            try {
+                await getUserCollectionRef('receipts').doc(docIdToDelete).delete(); // Delete from Firestore
+                receiptEntries = receiptEntries.filter(entry => entry.id !== docIdToDelete); // Update local array
+                saveReceiptEntries(); // Re-sync all data
+                applyFilter(); // Re-render table
+                clearReceiptForm();
+                addEntryButton.style.display = 'inline-block';
+                updateEntryButton.style.display = 'none';
+                showAlert('Receipt entry deleted!');
+            } catch (error) {
+                console.error("Error deleting receipt:", error);
+                showAlert(`Error deleting receipt: ${error.message}`);
+            }
         }
     };
 
     // --- CRUD Operations - Finance ---
-    addFinanceEntryButton.addEventListener('click', () => {
+    addFinanceEntryButton.addEventListener('click', async () => {
         const date = financeDateInput.value;
         const description = financeDescriptionInput.value.trim();
         const amount = parseFloat(financeAmountInput.value.trim());
@@ -517,11 +561,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (date && description && !isNaN(amount) && type) {
             const newTransaction = { date, description, amount, type };
-            financeTransactions.push(newTransaction);
-            saveFinanceTransactions();
-            renderFinanceTable(financeTransactions);
-            clearFinanceForm();
-            showAlert('Finance transaction added successfully!');
+            try {
+                const docRef = await getUserCollectionRef('finance').add(newTransaction);
+                financeTransactions.push({ id: docRef.id, ...newTransaction });
+                saveFinanceTransactions();
+                applyFilter();
+                clearFinanceForm();
+                showAlert('Finance transaction added successfully!');
+            } catch (error) {
+                console.error("Error adding finance transaction:", error);
+                showAlert(`Error adding finance transaction: ${error.message}`);
+            }
         } else {
             showAlert('Please fill in all finance fields correctly (Amount must be a number, Type must be selected).');
         }
@@ -532,15 +582,15 @@ document.addEventListener('DOMContentLoaded', () => {
         financeDescriptionInput.value = transaction.description;
         financeAmountInput.value = transaction.amount;
         financeTypeSelect.value = transaction.type;
-        financeEditIndexHidden.value = index;
+        financeEditIndexHidden.value = transaction.id;
 
         addFinanceEntryButton.style.display = 'none';
         updateFinanceEntryButton.style.display = 'inline-block';
     };
 
-    updateFinanceEntryButton.addEventListener('click', () => {
-        const indexToUpdate = parseInt(financeEditIndexHidden.value);
-        if (isNaN(indexToUpdate) || indexToUpdate < 0 || indexToUpdate >= financeTransactions.length) {
+    updateFinanceEntryButton.addEventListener('click', async () => {
+        const docIdToUpdate = financeEditIndexHidden.value;
+        if (!docIdToUpdate) {
             showAlert('Error: No finance transaction selected for update.'); return;
         }
 
@@ -550,32 +600,48 @@ document.addEventListener('DOMContentLoaded', () => {
         const type = financeTypeSelect.value;
 
         if (date && description && !isNaN(amount) && type) {
-            financeTransactions[indexToUpdate] = { date, description, amount, type };
-            saveFinanceTransactions();
-            renderFinanceTable(financeTransactions);
-            clearFinanceForm();
-            addFinanceEntryButton.style.display = 'inline-block';
-            updateFinanceEntryButton.style.display = 'none';
-            showAlert('Finance transaction updated successfully!');
+            const updatedTransaction = { date, description, amount, type };
+            try {
+                await getUserCollectionRef('finance').doc(docIdToUpdate).update(updatedTransaction);
+                const indexInArray = financeTransactions.findIndex(t => t.id === docIdToUpdate);
+                if (indexInArray !== -1) {
+                    financeTransactions[indexInArray] = { id: docIdToUpdate, ...updatedTransaction };
+                }
+                saveFinanceTransactions();
+                applyFilter();
+                clearFinanceForm();
+                addFinanceEntryButton.style.display = 'inline-block';
+                updateFinanceEntryButton.style.display = 'none';
+                showAlert('Finance transaction updated successfully!');
+            } catch (error) {
+                console.error("Error updating finance transaction:", error);
+                showAlert(`Error updating finance transaction: ${error.message}`);
+            }
         } else {
             showAlert('Please fill in all finance fields correctly for update.');
         }
     });
 
-    const deleteFinanceTransaction = (indexToDelete) => {
+    const deleteFinanceTransaction = async (docIdToDelete) => {
         if (confirm('Are you sure you want to delete this finance transaction?')) {
-            financeTransactions.splice(indexToDelete, 1);
-            saveFinanceTransactions();
-            applyFilter();
-            clearFinanceForm();
-            addFinanceEntryButton.style.display = 'inline-block';
-            updateFinanceEntryButton.style.display = 'none';
-            showAlert('Finance transaction deleted!');
+            try {
+                await getUserCollectionRef('finance').doc(docIdToDelete).delete();
+                financeTransactions = financeTransactions.filter(transaction => transaction.id !== docIdToDelete);
+                saveFinanceTransactions();
+                applyFilter();
+                clearFinanceForm();
+                addFinanceEntryButton.style.display = 'inline-block';
+                updateFinanceEntryButton.style.display = 'none';
+                showAlert('Finance transaction deleted!');
+            } catch (error) {
+                console.error("Error deleting finance transaction:", error);
+                showAlert(`Error deleting finance transaction: ${error.message}`);
+            }
         }
     };
 
     // --- CRUD Operations - Visitors ---
-    addVisitorEntryButton.addEventListener('click', () => {
+    addVisitorEntryButton.addEventListener('click', async () => {
         const date = visitorDateInput.value;
         const name = visitorNameInput.value.trim();
         const contact = visitorContactInput.value.trim();
@@ -585,11 +651,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (date && name && contact && purpose && timeIn) {
             const newVisitor = { date, name, contact, purpose, timeIn, timeOut };
-            visitors.push(newVisitor);
-            saveVisitors();
-            renderVisitorTable(visitors);
-            clearVisitorForm();
-            showAlert('Visitor entry added successfully!');
+            try {
+                const docRef = await getUserCollectionRef('visitors').add(newVisitor);
+                visitors.push({ id: docRef.id, ...newVisitor });
+                saveVisitors();
+                applyFilter();
+                clearVisitorForm();
+                showAlert('Visitor entry added successfully!');
+            } catch (error) {
+                console.error("Error adding visitor:", error);
+                showAlert(`Error adding visitor: ${error.message}`);
+            }
         } else {
             showAlert('Please fill in Date, Name, Contact, Purpose, and Time In for the visitor entry.');
         }
@@ -602,15 +674,15 @@ document.addEventListener('DOMContentLoaded', () => {
         visitorPurposeInput.value = visitor.purpose;
         timeInInput.value = visitor.timeIn;
         timeOutInput.value = visitor.timeOut;
-        visitorEditIndexHidden.value = index;
+        visitorEditIndexHidden.value = visitor.id;
 
         addVisitorEntryButton.style.display = 'none';
         updateVisitorEntryButton.style.display = 'inline-block';
     };
 
-    updateVisitorEntryButton.addEventListener('click', () => {
-        const indexToUpdate = parseInt(visitorEditIndexHidden.value);
-        if (isNaN(indexToUpdate) || indexToUpdate < 0 || indexToUpdate >= visitors.length) {
+    updateVisitorEntryButton.addEventListener('click', async () => {
+        const docIdToUpdate = visitorEditIndexHidden.value;
+        if (!docIdToUpdate) {
             showAlert('Error: No visitor entry selected for update.'); return;
         }
 
@@ -622,32 +694,48 @@ document.addEventListener('DOMContentLoaded', () => {
         const timeOut = timeOutInput.value;
 
         if (date && name && contact && purpose && timeIn) {
-            visitors[indexToUpdate] = { date, name, contact, purpose, timeIn, timeOut };
-            saveVisitors();
-            renderVisitorTable(visitors);
-            clearVisitorForm();
-            addVisitorEntryButton.style.display = 'inline-block';
-            updateVisitorEntryButton.style.display = 'none';
-            showAlert('Visitor entry updated successfully!');
+            const updatedVisitor = { date, name, contact, purpose, timeIn, timeOut };
+            try {
+                await getUserCollectionRef('visitors').doc(docIdToUpdate).update(updatedVisitor);
+                const indexInArray = visitors.findIndex(v => v.id === docIdToUpdate);
+                if (indexInArray !== -1) {
+                    visitors[indexInArray] = { id: docIdToUpdate, ...updatedVisitor };
+                }
+                saveVisitors();
+                applyFilter();
+                clearVisitorForm();
+                addVisitorEntryButton.style.display = 'inline-block';
+                updateVisitorEntryButton.style.display = 'none';
+                showAlert('Visitor entry updated successfully!');
+            } catch (error) {
+                console.error("Error updating visitor:", error);
+                showAlert(`Error updating visitor: ${error.message}`);
+            }
         } else {
             showAlert('Please fill in all visitor fields correctly for update.');
         }
     });
 
-    const deleteVisitorEntry = (indexToDelete) => {
+    const deleteVisitorEntry = async (docIdToDelete) => {
         if (confirm('Are you sure you want to delete this visitor entry?')) {
-            visitors.splice(indexToDelete, 1);
-            saveVisitors();
-            applyFilter();
-            clearVisitorForm();
-            addVisitorEntryButton.style.display = 'inline-block';
-            updateVisitorEntryButton.style.display = 'none';
-            showAlert('Visitor entry deleted!');
+            try {
+                await getUserCollectionRef('visitors').doc(docIdToDelete).delete();
+                visitors = visitors.filter(visitor => visitor.id !== docIdToDelete);
+                saveVisitors();
+                applyFilter();
+                clearVisitorForm();
+                addVisitorEntryButton.style.display = 'inline-block';
+                updateVisitorEntryButton.style.display = 'none';
+                showAlert('Visitor entry deleted!');
+            } catch (error) {
+                console.error("Error deleting visitor:", error);
+                showAlert(`Error deleting visitor: ${error.message}`);
+            }
         }
     };
 
     // --- CRUD Operations - Complains ---
-    addComplainEntryButton.addEventListener('click', () => {
+    addComplainEntryButton.addEventListener('click', async () => {
         const date = complainDateInput.value;
         const complainantName = complainantNameInput.value.trim();
         const complainantContact = complainantContactInput.value.trim();
@@ -656,11 +744,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (date && complainantName && details && status) {
             const newComplain = { date, complainantName, complainantContact, details, status };
-            complains.push(newComplain);
-            saveComplains();
-            renderComplainTable(complains);
-            clearComplainForm();
-            showAlert('Complain entry added successfully!');
+            try {
+                const docRef = await getUserCollectionRef('complains').add(newComplain);
+                complains.push({ id: docRef.id, ...newComplain });
+                saveComplains();
+                applyFilter();
+                clearComplainForm();
+                showAlert('Complain entry added successfully!');
+            } catch (error) {
+                console.error("Error adding complain:", error);
+                showAlert(`Error adding complain: ${error.message}`);
+            }
         } else {
             showAlert('Please fill in Date, Complainant Name, Details, and Status for the complain entry.');
         }
@@ -672,15 +766,15 @@ document.addEventListener('DOMContentLoaded', () => {
         complainantContactInput.value = complain.complainantContact;
         complainDetailsInput.value = complain.details;
         complainStatusSelect.value = complain.status;
-        complainEditIndexHidden.value = index;
+        complainEditIndexHidden.value = complain.id;
 
         addComplainEntryButton.style.display = 'none';
         updateComplainEntryButton.style.display = 'inline-block';
     };
 
-    updateComplainEntryButton.addEventListener('click', () => {
-        const indexToUpdate = parseInt(complainEditIndexHidden.value);
-        if (isNaN(indexToUpdate) || indexToUpdate < 0 || indexToUpdate >= complains.length) {
+    updateComplainEntryButton.addEventListener('click', async () => {
+        const docIdToUpdate = complainEditIndexHidden.value;
+        if (!docIdToUpdate) {
             showAlert('Error: No complain entry selected for update.'); return;
         }
 
@@ -691,27 +785,43 @@ document.addEventListener('DOMContentLoaded', () => {
         const status = complainStatusSelect.value;
 
         if (date && complainantName && details && status) {
-            complains[indexToUpdate] = { date, complainantName, complainantContact, details, status };
-            saveComplains();
-            renderComplainTable(complains);
-            clearComplainForm();
-            addComplainEntryButton.style.display = 'inline-block';
-            updateComplainEntryButton.style.display = 'none';
-            showAlert('Complain entry updated successfully!');
+            const updatedComplain = { date, complainantName, complainantContact, details, status };
+            try {
+                await getUserCollectionRef('complains').doc(docIdToUpdate).update(updatedComplain);
+                const indexInArray = complains.findIndex(c => c.id === docIdToUpdate);
+                if (indexInArray !== -1) {
+                    complains[indexInArray] = { id: docIdToUpdate, ...updatedComplain };
+                }
+                saveComplains();
+                applyFilter();
+                clearComplainForm();
+                addComplainEntryButton.style.display = 'inline-block';
+                updateComplainEntryButton.style.display = 'none';
+                showAlert('Complain entry updated successfully!');
+            } catch (error) {
+                console.error("Error updating complain:", error);
+                showAlert(`Error updating complain: ${error.message}`);
+            }
         } else {
             showAlert('Please fill in all complain fields correctly for update.');
         }
     });
 
-    const deleteComplainEntry = (indexToDelete) => {
+    const deleteComplainEntry = async (docIdToDelete) => {
         if (confirm('Are you sure you want to delete this complain entry?')) {
-            complains.splice(indexToDelete, 1);
-            saveComplains();
-            applyFilter();
-            clearComplainForm();
-            addComplainEntryButton.style.display = 'inline-block';
-            updateComplainEntryButton.style.display = 'none';
-            showAlert('Complain entry deleted!');
+            try {
+                await getUserCollectionRef('complains').doc(docIdToDelete).delete();
+                complains = complains.filter(complain => complain.id !== docIdToDelete);
+                saveComplains();
+                applyFilter();
+                clearComplainForm();
+                addComplainEntryButton.style.display = 'inline-block';
+                updateComplainEntryButton.style.display = 'none';
+                showAlert('Complain entry deleted!');
+            } catch (error) {
+                console.error("Error deleting complain:", error);
+                showAlert(`Error deleting complain: ${error.message}`);
+            }
         }
     };
 
@@ -901,56 +1011,167 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- Login/Logout Functions ---
-    const showLogin = () => {
-        mainAppContainer.style.display = 'none';
-        loginSection.style.display = 'flex'; // Use flex to center the login form
-        loginUsernameInput.value = '';
-        loginPasswordInput.value = '';
-        currentUser = null;
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('currentUser');
+    // --- Auth Form Switching ---
+    const showAuthForm = (formToShow) => {
+        loginForm.classList.remove('active-form');
+        registerForm.classList.remove('active-form');
+        resetPasswordForm.classList.remove('active-form');
+        formToShow.classList.add('active-form');
     };
 
-    const showMainApp = () => {
-        loginSection.style.display = 'none';
-        mainAppContainer.style.display = 'block';
-        // Reload all user-specific data after login
-        loadCategories(); // Categories are global, but re-populate select
-        loadReceiptEntries();
-        loadFinanceTransactions();
-        loadVisitors();
-        loadComplains();
-        loadCompanyNameSetting(); // Load and set company name on h1
-        updateDashboardMetrics();
-        // Set initial active application (Receipts by default) and update H2
-        receiptsAppSection.classList.add('active-app');
-        document.querySelector('.nav-button[data-target="receipts-app"]').classList.add('active');
-        currentAppName.textContent = document.querySelector('.nav-button.active').dataset.appName;
-    };
+    showRegisterLink.addEventListener('click', (e) => { e.preventDefault(); showAuthForm(registerForm); });
+    showResetPasswordLink.addEventListener('click', (e) => { e.preventDefault(); showAuthForm(resetPasswordForm); });
+    showLoginFromRegisterLink.addEventListener('click', (e) => { e.preventDefault(); showAuthForm(loginForm); });
+    showLoginFromResetLink.addEventListener('click', (e) => { e.preventDefault(); showAuthForm(loginForm); });
 
-    loginButton.addEventListener('click', () => {
-        const username = loginUsernameInput.value;
-        const password = loginPasswordInput.value;
-
-        if (username === VALID_USERNAME && password === VALID_PASSWORD) {
-            currentUser = DEMO_USER_ID; // Set a fixed user ID for this demo
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('currentUser', currentUser);
-            showMainApp();
-            showAlert('Login successful!');
-        } else {
-            showAlert('Invalid username or password.');
+    // --- Firebase Authentication Functions ---
+    loginButton.addEventListener('click', async () => {
+        const email = loginEmailInput.value.trim();
+        const password = loginPasswordInput.value.trim();
+        if (!email || !password) {
+            showAlert('Please enter both email and password.');
+            return;
+        }
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+            // onAuthStateChanged will handle UI update
+        } catch (error) {
+            console.error("Login error:", error);
+            showAlert(`Login failed: ${error.message}`);
         }
     });
 
-    logoutButton.addEventListener('click', () => {
+    googleLoginButton.addEventListener('click', async () => {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        try {
+            await auth.signInWithPopup(provider);
+            // onAuthStateChanged will handle UI update
+        } catch (error) {
+            console.error("Google login error:", error);
+            showAlert(`Google login failed: ${error.message}`);
+        }
+    });
+
+    registerButton.addEventListener('click', async () => {
+        const email = registerEmailInput.value.trim();
+        const password = registerPasswordInput.value.trim();
+        const confirmPassword = confirmPasswordInput.value.trim();
+
+        if (!email || !password || !confirmPassword) {
+            showAlert('Please fill in all fields.');
+            return;
+        }
+        if (password.length < 6) {
+            showAlert('Password should be at least 6 characters.');
+            return;
+        }
+        if (password !== confirmPassword) {
+            showAlert('Passwords do not match.');
+            return;
+        }
+
+        try {
+            await auth.createUserWithEmailAndPassword(email, password);
+            showAlert('Registration successful! You are now logged in.');
+            // onAuthStateChanged will handle UI update
+        } catch (error) {
+            console.error("Registration error:", error);
+            showAlert(`Registration failed: ${error.message}`);
+        }
+    });
+
+    resetPasswordButton.addEventListener('click', async () => {
+        const email = resetEmailInput.value.trim();
+        if (!email) {
+            showAlert('Please enter your email to reset password.');
+            return;
+        }
+        try {
+            await auth.sendPasswordResetEmail(email);
+            showAlert('Password reset email sent! Check your inbox.');
+            showAuthForm(loginForm); // Go back to login
+        } catch (error) {
+            console.error("Password reset error:", error);
+            showAlert(`Password reset failed: ${error.message}`);
+        }
+    });
+
+    logoutButton.addEventListener('click', async () => {
         if (confirm('Are you sure you want to log out?')) {
-            showLogin();
-            showAlert('Logged out successfully.');
+            try {
+                await auth.signOut();
+                // onAuthStateChanged will handle UI update
+                showAlert('Logged out successfully.');
+            } catch (error) {
+                console.error("Logout error:", error);
+                showAlert(`Logout failed: ${error.message}`);
+            }
         }
     });
 
+    // --- Firebase Auth State Listener ---
+    auth.onAuthStateChanged(async (user) => {
+        currentUser = user;
+        if (user) {
+            // User is logged in
+            authSection.style.display = 'none';
+            mainAppContainer.style.display = 'block';
+            console.log("User logged in:", user.email, "UID:", user.uid);
+
+            // Load all user-specific data from Firestore
+            receiptEntries = await loadDataFromFirestore('receipts');
+            financeTransactions = await loadDataFromFirestore('finance');
+            visitors = await loadDataFromFirestore('visitors');
+            complains = await loadDataFromFirestore('complains');
+            loadCategories(); // Categories are global (from localStorage)
+            loadCompanyNameSetting(); // Company name is global (from localStorage)
+
+            // Render tables with loaded data
+            renderReceiptTable(receiptEntries);
+            renderFinanceTable(financeTransactions);
+            renderVisitorTable(visitors);
+            renderComplainTable(complains);
+
+            updateDashboardMetrics(); // Update dashboard with loaded data
+
+            // Set initial active application (Receipts by default) and update H2
+            document.querySelectorAll('.app-section').forEach(section => section.classList.remove('active-app'));
+            document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+            receiptsAppSection.classList.add('active-app');
+            document.querySelector('.nav-button[data-target="receipts-app"]').classList.add('active');
+            currentAppName.textContent = document.querySelector('.nav-button.active').dataset.appName;
+
+            // Clear all forms
+            clearReceiptForm();
+            clearFinanceForm();
+            clearVisitorForm();
+            clearComplainForm();
+
+            // Apply any existing filter
+            applyFilter(); // Re-apply filter in case it was active before logout/login
+        } else {
+            // User is logged out
+            authSection.style.display = 'flex'; // Show auth forms
+            mainAppContainer.style.display = 'none';
+            console.log("User logged out.");
+
+            // Clear all local data when logged out
+            receiptEntries = [];
+            financeTransactions = [];
+            visitors = [];
+            complains = [];
+            
+            // Clear tables, do not rely on applyFilter as data is empty
+            receiptTableBody.innerHTML = '';
+            financeTableBody.innerHTML = '';
+            visitorTableBody.innerHTML = '';
+            complainTableBody.innerHTML = '';
+
+            updateDashboardMetrics(); // Reset dashboard metrics
+            filterInput.value = ''; // Clear filter input
+            showAuthForm(loginForm); // Always show login form on logout
+        }
+    });
 
     // --- Initializations on Load ---
     const initializeApp = () => {
@@ -964,16 +1185,8 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
-        // Check login status
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const storedCurrentUser = localStorage.getItem('currentUser');
-
-        if (isLoggedIn && storedCurrentUser) {
-            currentUser = storedCurrentUser;
-            showMainApp();
-        } else {
-            showLogin();
-        }
+        // The onAuthStateChanged listener will handle the initial UI state (logged in/out)
+        // and load data accordingly. No need for separate initial login check here.
     };
 
     initializeApp();
