@@ -194,10 +194,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveDataToFirestore = async (collectionName, dataArray) => {
         const collectionRef = getGlobalCollectionRef(collectionName);
         try {
+            // Firestore transactions or batched writes are better for larger sets,
+            // but for a small demo, a simple delete-all-then-add-all approach is feasible.
+            // For production, consider using arrayUnion/arrayRemove or managing individual documents.
+
+            // Fetch all existing documents in the collection
             const snapshot = await collectionRef.get();
             const batch = db.batch();
 
-            // Delete existing documents in the collection to fully sync with local array
+            // Delete existing documents in the collection
             snapshot.docs.forEach(doc => {
                 batch.delete(doc.ref);
             });
@@ -206,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dataArray.forEach(item => {
                 // Use existing 'id' if available (for updates), otherwise let Firestore generate
                 const docRef = item.id ? collectionRef.doc(item.id) : collectionRef.doc();
-                batch.set(docRef, item);
+                batch.set(docRef, { ...item, id: docRef.id }); // Ensure 'id' is part of the stored data
             });
             await batch.commit();
             console.log(`Data for ${collectionName} saved to Firestore.`);
@@ -334,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Sort by date (newest first)
         dataToRender.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        dataToRender.forEach((entry, index) => {
+        dataToRender.forEach((entry) => { // Removed index, using entry.id directly
             const row = receiptTableBody.insertRow();
             row.insertCell().textContent = convertADToBS(entry.date);
             row.insertCell().textContent = entry.receiptNo;
@@ -375,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         dataToRender.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        dataToRender.forEach((transaction, index) => {
+        dataToRender.forEach((transaction) => { // Removed index
             const row = financeTableBody.insertRow();
             row.insertCell().textContent = convertADToBS(transaction.date);
             row.insertCell().textContent = transaction.description;
@@ -413,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         dataToRender.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        dataToRender.forEach((visitor, index) => {
+        dataToRender.forEach((visitor) => { // Removed index
             const row = visitorTableBody.insertRow();
             row.insertCell().textContent = convertADToBS(visitor.date);
             row.insertCell().textContent = visitor.name;
@@ -452,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         dataToRender.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        dataToRender.forEach((complain, index) => {
+        dataToRender.forEach((complain) => { // Removed index
             const row = complainTableBody.insertRow();
             row.insertCell().textContent = convertADToBS(complain.date);
             row.insertCell().textContent = complain.complainantName;
@@ -496,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return dateB - dateA;
         });
 
-        dataToRender.forEach((entry, index) => {
+        dataToRender.forEach((entry) => { // Removed index
             const row = daybookTableBody.insertRow();
             row.insertCell().textContent = convertADToBS(entry.date);
             row.insertCell().textContent = entry.time;
@@ -535,10 +540,12 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const docRef = await getGlobalCollectionRef('receipts').add(newEntry); // Add to Firestore
                 receiptEntries.push({ id: docRef.id, ...newEntry }); // Add with Firestore ID
-                saveReceiptEntries(); // Re-sync all data (simple for demo)
+                // Instead of re-saving entire collection, we now update the local array
+                // and then just render. The save logic is more on app load/logout/specific saves.
                 applyFilter(); // Re-render table with new data
                 clearReceiptForm();
                 showAlert('Receipt entry added successfully!');
+                await saveReceiptEntries(); // Save to Firestore immediately after add
             } catch (error) {
                 console.error("Error adding receipt:", error);
                 showAlert(`Error adding receipt: ${error.message}`);
@@ -583,12 +590,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (indexInArray !== -1) {
                     receiptEntries[indexInArray] = { id: docIdToUpdate, ...updatedEntry };
                 }
-                saveReceiptEntries(); // Re-sync all data (simple for demo)
                 applyFilter(); // Re-render table with updated data
                 clearReceiptForm();
                 addEntryButton.style.display = 'inline-block';
                 updateEntryButton.style.display = 'none';
                 showAlert('Receipt entry updated successfully!');
+                await saveReceiptEntries(); // Save to Firestore immediately after update
             } catch (error) {
                 console.error("Error updating receipt:", error);
                 showAlert(`Error updating receipt: ${error.message}`);
@@ -603,12 +610,12 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 await getGlobalCollectionRef('receipts').doc(docIdToDelete).delete(); // Delete from Firestore
                 receiptEntries = receiptEntries.filter(entry => entry.id !== docIdToDelete); // Update local array
-                saveReceiptEntries(); // Re-sync all data
                 applyFilter(); // Re-render table
                 clearReceiptForm();
                 addEntryButton.style.display = 'inline-block';
                 updateEntryButton.style.display = 'none';
                 showAlert('Receipt entry deleted!');
+                await saveReceiptEntries(); // Save to Firestore immediately after delete
             } catch (error) {
                 console.error("Error deleting receipt:", error);
                 showAlert(`Error deleting receipt: ${error.message}`);
@@ -628,10 +635,10 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const docRef = await getGlobalCollectionRef('finance').add(newTransaction);
                 financeTransactions.push({ id: docRef.id, ...newTransaction });
-                saveFinanceTransactions();
                 applyFilter();
                 clearFinanceForm();
                 showAlert('Finance transaction added successfully!');
+                await saveFinanceTransactions();
             } catch (error) {
                 console.error("Error adding finance transaction:", error);
                 showAlert(`Error adding finance transaction: ${error.message}`);
@@ -671,12 +678,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (indexInArray !== -1) {
                     financeTransactions[indexInArray] = { id: docIdToUpdate, ...updatedTransaction };
                 }
-                saveFinanceTransactions();
                 applyFilter();
                 clearFinanceForm();
                 addFinanceEntryButton.style.display = 'inline-block';
                 updateFinanceEntryButton.style.display = 'none';
                 showAlert('Finance transaction updated successfully!');
+                await saveFinanceTransactions();
             } catch (error) {
                 console.error("Error updating finance transaction:", error);
                 showAlert(`Error updating finance transaction: ${error.message}`);
@@ -691,12 +698,12 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 await getGlobalCollectionRef('finance').doc(docIdToDelete).delete();
                 financeTransactions = financeTransactions.filter(transaction => transaction.id !== docIdToDelete);
-                saveFinanceTransactions();
                 applyFilter();
                 clearFinanceForm();
                 addFinanceEntryButton.style.display = 'inline-block';
                 updateFinanceEntryButton.style.display = 'none';
                 showAlert('Finance transaction deleted!');
+                await saveFinanceTransactions();
             } catch (error) {
                 console.error("Error deleting finance transaction:", error);
                 showAlert(`Error deleting finance transaction: ${error.message}`);
@@ -718,10 +725,10 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const docRef = await getGlobalCollectionRef('visitors').add(newVisitor);
                 visitors.push({ id: docRef.id, ...newVisitor });
-                saveVisitors();
                 applyFilter();
                 clearVisitorForm();
                 showAlert('Visitor entry added successfully!');
+                await saveVisitors();
             } catch (error) {
                 console.error("Error adding visitor:", error);
                 showAlert(`Error adding visitor: ${error.message}`);
@@ -765,12 +772,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (indexInArray !== -1) {
                     visitors[indexInArray] = { id: docIdToUpdate, ...updatedVisitor };
                 }
-                saveVisitors();
                 applyFilter();
                 clearVisitorForm();
                 addVisitorEntryButton.style.display = 'inline-block';
                 updateVisitorEntryButton.style.display = 'none';
                 showAlert('Visitor entry updated successfully!');
+                await saveVisitors();
             } catch (error) {
                 console.error("Error updating visitor:", error);
                 showAlert(`Error updating visitor: ${error.message}`);
@@ -785,12 +792,12 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 await getGlobalCollectionRef('visitors').doc(docIdToDelete).delete();
                 visitors = visitors.filter(visitor => visitor.id !== docIdToDelete);
-                saveVisitors();
                 applyFilter();
                 clearVisitorForm();
                 addVisitorEntryButton.style.display = 'inline-block';
                 updateVisitorEntryButton.style.display = 'none';
                 showAlert('Visitor entry deleted!');
+                await saveVisitors();
             } catch (error) {
                 console.error("Error deleting visitor:", error);
                 showAlert(`Error deleting visitor: ${error.message}`);
@@ -811,10 +818,10 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const docRef = await getGlobalCollectionRef('complains').add(newComplain);
                 complains.push({ id: docRef.id, ...newComplain });
-                saveComplains();
                 applyFilter();
                 clearComplainForm();
                 showAlert('Complain entry added successfully!');
+                await saveComplains();
             } catch (error) {
                 console.error("Error adding complain:", error);
                 showAlert(`Error adding complain: ${error.message}`);
@@ -856,12 +863,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (indexInArray !== -1) {
                     complains[indexInArray] = { id: docIdToUpdate, ...updatedComplain };
                 }
-                saveComplains();
                 applyFilter();
                 clearComplainForm();
                 addComplainEntryButton.style.display = 'inline-block';
                 updateComplainEntryButton.style.display = 'none';
                 showAlert('Complain entry updated successfully!');
+                await saveComplains();
             } catch (error) {
                 console.error("Error updating complain:", error);
                 showAlert(`Error updating complain: ${error.message}`);
@@ -876,12 +883,12 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 await getGlobalCollectionRef('complains').doc(docIdToDelete).delete();
                 complains = complains.filter(complain => complain.id !== docIdToDelete);
-                saveComplains();
                 applyFilter();
                 clearComplainForm();
                 addComplainEntryButton.style.display = 'inline-block';
                 updateComplainEntryButton.style.display = 'none';
                 showAlert('Complain entry deleted!');
+                await saveComplains();
             } catch (error) {
                 console.error("Error deleting complain:", error);
                 showAlert(`Error deleting complain: ${error.message}`);
@@ -902,10 +909,10 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const docRef = await getGlobalCollectionRef('daybook').add(newDaybookEntry);
                 daybookEntries.push({ id: docRef.id, ...newDaybookEntry });
-                saveDaybookEntries();
                 applyFilter();
                 clearDaybookForm();
                 showAlert('Daybook entry added successfully!');
+                await saveDaybookEntries();
             } catch (error) {
                 console.error("Error adding daybook entry:", error);
                 showAlert(`Error adding daybook entry: ${error.message}`);
@@ -947,12 +954,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (indexInArray !== -1) {
                     daybookEntries[indexInArray] = { id: docIdToUpdate, ...updatedEntry };
                 }
-                saveDaybookEntries();
                 applyFilter();
                 clearDaybookForm();
                 addDaybookEntryButton.style.display = 'inline-block';
                 updateDaybookEntryButton.style.display = 'none';
                 showAlert('Daybook entry updated successfully!');
+                await saveDaybookEntries();
             } catch (error) {
                 console.error("Error updating daybook entry:", error);
                 showAlert(`Error updating daybook entry: ${error.message}`);
@@ -967,12 +974,12 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 await getGlobalCollectionRef('daybook').doc(docIdToDelete).delete();
                 daybookEntries = daybookEntries.filter(entry => entry.id !== docIdToDelete);
-                saveDaybookEntries();
                 applyFilter();
                 clearDaybookForm();
                 addDaybookEntryButton.style.display = 'inline-block';
                 updateDaybookEntryButton.style.display = 'none';
                 showAlert('Daybook entry deleted!');
+                await saveDaybookEntries();
             } catch (error) {
                 console.error("Error deleting daybook entry:", error);
                 showAlert(`Error deleting daybook entry: ${error.message}`);
@@ -1047,40 +1054,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Filter Functionality (Applies to CURRENTLY ACTIVE table only) ---
-    let currentActiveAppId = 'receipts-app';
+    let currentActiveAppId = 'receipts-app'; // Default active app
 
     const applyFilter = () => {
         const filterText = filterInput.value.toLowerCase();
 
-        if (currentActiveAppId === 'receipts-app') {
+        // Get the currently active app section
+        const activeAppSection = document.querySelector('.app-section.active-app');
+        if (!activeAppSection) return; // No active section, nothing to filter
+
+        const activeAppId = activeAppSection.id;
+
+        if (activeAppId === 'receipts-app') {
             const filteredData = receiptEntries.filter(entry =>
                 Object.values(entry).some(value =>
                     String(value).toLowerCase().includes(filterText)
                 )
             );
             renderReceiptTable(filteredData);
-        } else if (currentActiveAppId === 'finance-app') {
+        } else if (activeAppId === 'finance-app') {
             const filteredData = financeTransactions.filter(transaction =>
                 Object.values(transaction).some(value =>
                     String(value).toLowerCase().includes(filterText)
                 )
             );
             renderFinanceTable(filteredData);
-        } else if (currentActiveAppId === 'visitors-app') {
+        } else if (activeAppId === 'visitors-app') {
             const filteredData = visitors.filter(visitor =>
                 Object.values(visitor).some(value =>
                     String(value).toLowerCase().includes(filterText)
                 )
             );
             renderVisitorTable(filteredData);
-        } else if (currentActiveAppId === 'complains-app') {
+        } else if (activeAppId === 'complains-app') {
             const filteredData = complains.filter(complain =>
                 Object.values(complain).some(value =>
                     String(value).toLowerCase().includes(filterText)
                 )
             );
             renderComplainTable(filteredData);
-        } else if (currentActiveAppId === 'daybook-app') { // New filter for Daybook
+        } else if (activeAppId === 'daybook-app') { // New filter for Daybook
             const filteredData = daybookEntries.filter(entry =>
                 Object.values(entry).some(value =>
                     String(value).toLowerCase().includes(filterText)
@@ -1181,15 +1194,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const targetAppId = button.dataset.target;
             const appName = button.dataset.appName;
 
+            // Remove active class from all nav buttons and app sections
             navButtons.forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.app-section').forEach(section => section.classList.remove('active-app'));
 
+            // Add active class to the clicked button and its corresponding app section
             button.classList.add('active');
             document.getElementById(targetAppId).classList.add('active-app');
 
+            // Update the global variable for current active app
             currentActiveAppId = targetAppId;
+            // Update the header app name
             currentAppName.textContent = appName;
 
+            // Clear filter and re-apply for the new section
             filterInput.value = '';
             applyFilter();
         });
@@ -1197,15 +1215,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Simple Login/Logout with Hardcoded Credentials (INSECURE FOR PRODUCTION) ---
     simpleLoginButton.addEventListener('click', async () => {
-        const username = usernameInput.value.trim(); // Added .trim()
-        const password = passwordInput.value.trim(); // Added .trim()
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value.trim();
 
         // *** WARNING: THIS IS EXTREMELY INSECURE FOR ANY REAL APPLICATION ***
         // Hardcoded credentials are visible to anyone inspecting the source code.
         // This is for demonstration purposes only where security is NOT a concern.
         if (username === 'Admin' && password === 'Admin123') {
             showAlert('Login successful! Welcome.');
-            loginStatusChange(true); // Simulate login state
+            await loginStatusChange(true); // Simulate login state, await data loading
         } else {
             showAlert('Invalid username or password.');
             usernameInput.value = '';
@@ -1259,32 +1277,35 @@ document.addEventListener('DOMContentLoaded', () => {
             clearComplainForm();
             clearDaybookForm(); // New
 
-            applyFilter();
+            applyFilter(); // Apply initial filter (which is usually empty, showing all)
         } else {
-            authSection.style.display = 'flex';
-            mainAppContainer.style.display = 'none';
-            console.log("Logged out from simple system.");
+            // Only set auth section display to flex and main app to none if we are actually logging out
+            if (authSection.style.display === 'none' || mainAppContainer.style.display === 'block') {
+                authSection.style.display = 'flex';
+                mainAppContainer.style.display = 'none';
+                console.log("Logged out from simple system.");
 
-            // Clear all local data
-            receiptEntries = [];
-            financeTransactions = [];
-            visitors = [];
-            complains = [];
-            daybookEntries = []; // New
+                // Clear all local data
+                receiptEntries = [];
+                financeTransactions = [];
+                visitors = [];
+                complains = [];
+                daybookEntries = []; // New
 
-            // Clear tables
-            receiptTableBody.innerHTML = '';
-            financeTableBody.innerHTML = '';
-visitorTableBody.innerHTML = '';
-            complainTableBody.innerHTML = '';
-            daybookTableBody.innerHTML = ''; // New
+                // Clear tables
+                receiptTableBody.innerHTML = '';
+                financeTableBody.innerHTML = '';
+                visitorTableBody.innerHTML = '';
+                complainTableBody.innerHTML = '';
+                daybookTableBody.innerHTML = ''; // New
 
-            updateDashboardMetrics();
-            filterInput.value = '';
+                updateDashboardMetrics();
+                filterInput.value = '';
 
-            // Reset login fields (and set default values for convenience)
-            usernameInput.value = 'Admin';
-            passwordInput.value = 'Admin123';
+                // Reset login fields (and set default values for convenience)
+                usernameInput.value = 'Admin';
+                passwordInput.value = 'Admin123';
+            }
         }
     };
 
@@ -1306,12 +1327,23 @@ visitorTableBody.innerHTML = '';
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
-        // Initially show the login form
-        loginStatusChange(false); // Start in logged out state
+        // Crucial fix: Don't call loginStatusChange(false) here,
+        // as it will immediately log out after a successful login.
+        // The auth section is initially displayed via HTML's default state.
+        // We only change it when login button is clicked.
+
+        // Ensure the auth section is visible by default (CSS handles this, but explicit might help)
+        authSection.style.display = 'flex';
+        mainAppContainer.style.display = 'none';
+
+        // Load company details and categories only when the app is initialized (i.e., after login)
+        // or ensure they are loaded globally if needed before login
+        loadCategories(); // Categories can be loaded always as they are global config
+        loadCompanyDetails(); // Company details can be loaded always as they are global config
     };
 
     initializeApp();
 
     // Event listener for saving company details (in settings)
-    saveCompanyDetailsButton.addEventListener('click', saveCompanyDetails); // Changed ID
+    saveCompanyDetailsButton.addEventListener('click', saveCompanyDetails);
 });
