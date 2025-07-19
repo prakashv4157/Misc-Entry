@@ -5,7 +5,7 @@ body {
     padding: 30px;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center; /* Changed to center for vertical centering of login form */
     min-height: 100vh;
     color: #333;
 }
@@ -443,9 +443,15 @@ hr {
     max-width: 450px; /* Slightly wider */
     text-align: center;
     box-sizing: border-box;
-    margin-top: 50px; /* Adjust vertical centering */
+    /* Removed margin-top, relying on body's align-items: center */
     color: #fff; /* White text for contrast */
     animation: fadeIn 1s ease-out; /* Fade-in animation */
+
+    /* Added flex properties for internal layout */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center content vertically within login box */
+    align-items: stretch; /* Make children stretch to fill width */
 }
 
 @keyframes fadeIn {
@@ -463,10 +469,12 @@ hr {
 .login-container .input-group {
     margin-bottom: 25px; /* More space between inputs */
     text-align: left;
+    /* Ensure input group takes full width */
+    width: 100%;
 }
 
 .login-container label {
-    display: block;
+    display: block; /* This ensures labels are on new lines */
     margin-bottom: 10px; /* More space below label */
     font-weight: bold;
     color: #e0f7fa; /* Lighter color for labels */
@@ -475,11 +483,11 @@ hr {
 
 .login-container input[type="text"],
 .login-container input[type="password"] {
-    width: calc(100% - 22px);
+    width: 100%; /* Make inputs take full width of their parent (input-group) */
     padding: 15px; /* Larger padding for inputs */
     border: none; /* No default border */
     border-radius: 8px; /* More rounded inputs */
-    box-sizing: border-box;
+    box-sizing: border-box; /* Include padding in width calculation */
     font-size: 1.1em; /* Larger font in inputs */
     background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white background */
     color: #333;
@@ -495,7 +503,7 @@ hr {
 }
 
 .login-container button#loginButton {
-    width: 100%;
+    width: 100%; /* Make button take full width */
     padding: 18px; /* Larger button */
     background: linear-gradient(45deg, #ff7e5f, #feb47b); /* Warm orange gradient */
     color: white;
@@ -507,6 +515,7 @@ hr {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Button shadow */
     transition: all 0.3s ease;
     letter-spacing: 1px; /* Spaced out letters */
+    margin-top: 20px; /* Add some space above the button */
 }
 
 .login-container button#loginButton:hover {
@@ -525,6 +534,7 @@ hr {
     font-size: 0.95em;
     color: #c8e6c9; /* Lighter color for note */
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    width: 100%; /* Ensure note takes full width */
 }
 
 
