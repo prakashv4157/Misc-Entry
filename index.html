@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt & Finance Tracker</title>
+    <title>Integrated Management System</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Receipt & Finance Tracker</h1>
-            <div class="dashboard">
+            <h1><span id="displayCompanyName">Your Company Name</span></h1>
+            <h2 id="currentAppName">Receipts</h2> <div class="dashboard">
                 <div class="datetime">
                     <span id="currentDateAD"></span> | <span id="currentDateBS"></span> | <span id="currentTime"></span>
                 </div>
@@ -24,15 +24,18 @@
         </header>
 
         <nav class="main-nav">
-            <button class="nav-button active" data-target="receipts-app">Receipts</button>
-            <button class="nav-button" data-target="finance-app">Finance</button>
+            <button class="nav-button active" data-target="receipts-app" data-app-name="Receipts">Receipts</button>
+            <button class="nav-button" data-target="finance-app" data-app-name="Finance">Finance</button>
+            <button class="nav-button" data-target="visitors-app" data-app-name="Visitors">Visitors</button>
+            <button class="nav-button" data-target="complains-app" data-app-name="Complains">Complains</button>
+            <button class="nav-button" data-target="settings-app" data-app-name="Settings">Settings</button>
         </nav>
 
         <hr>
 
         <div id="receipts-app" class="app-section active-app">
             <div class="input-section">
-                <h2>Add/Edit Receipt Entry</h2>
+                <h3>Add/Edit Receipt Entry</h3>
                 <input type="hidden" id="editIndex">
                 <label for="receiptDate">Date (AD):</label>
                 <input type="date" id="receiptDate">
@@ -71,7 +74,7 @@
             <hr>
 
             <div class="data-section">
-                <h2>All Receipt Entries</h2>
+                <h3>All Receipt Entries</h3>
                 <table id="receiptTable">
                     <thead>
                         <tr>
@@ -93,7 +96,7 @@
 
         <div id="finance-app" class="app-section">
             <div class="input-section finance-section">
-                <h2>Add/Edit Income/Expense</h2>
+                <h3>Add/Edit Income/Expense</h3>
                 <input type="hidden" id="financeEditIndex">
                 <label for="financeDate">Date (AD):</label>
                 <input type="date" id="financeDate">
@@ -121,7 +124,7 @@
             <hr>
 
             <div class="data-section">
-                <h2>All Income/Expense Transactions</h2>
+                <h3>All Income/Expense Transactions</h3>
                 <table id="financeTable">
                     <thead>
                         <tr>
@@ -139,19 +142,117 @@
             </div>
         </div>
 
-        <hr>
+        <div id="visitors-app" class="app-section">
+            <div class="input-section visitor-section">
+                <h3>Add/Edit Visitor Entry</h3>
+                <input type="hidden" id="visitorEditIndex">
+                <label for="visitorDate">Date (AD):</label>
+                <input type="date" id="visitorDate">
+                <label for="visitorName">Name:</label>
+                <input type="text" id="visitorName" placeholder="e.g., Jane Doe">
+                <label for="visitorContact">Contact:</label>
+                <input type="text" id="visitorContact" placeholder="e.g., +977-98XXXXXXXX">
+                <label for="visitorPurpose">Purpose:</label>
+                <input type="text" id="visitorPurpose" placeholder="e.g., Meeting, Delivery">
+                <label for="timeIn">Time In:</label>
+                <input type="time" id="timeIn">
+                <label for="timeOut">Time Out:</label>
+                <input type="time" id="timeOut">
 
-        <div class="settings-section">
-            <h2>Settings</h2>
-            <label for="companyName">Company Name for Print:</label>
-            <input type="text" id="companyName" placeholder="Your Company Name">
-            <button id="saveCompanyName">Save Company Name</button>
+                <div class="form-actions">
+                    <button id="addVisitorEntry">Add Visitor</button>
+                    <button id="updateVisitorEntry" style="display: none;">Update Visitor</button>
+                    <button id="clearVisitorFormBtn">Clear Visitor Form</button>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="data-section">
+                <h3>All Visitor Entries</h3>
+                <table id="visitorTable">
+                    <thead>
+                        <tr>
+                            <th>Date (BS)</th>
+                            <th>Name</th>
+                            <th>Contact</th>
+                            <th>Purpose</th>
+                            <th>Time In</th>
+                            <th>Time Out</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+                <button id="printVisitorData">Print Visitor Data</button>
+            </div>
+        </div>
+
+        <div id="complains-app" class="app-section">
+            <div class="input-section complain-section">
+                <h3>Add/Edit Complain Entry</h3>
+                <input type="hidden" id="complainEditIndex">
+                <label for="complainDate">Date (AD):</label>
+                <input type="date" id="complainDate">
+                <label for="complainantName">Complainant Name:</label>
+                <input type="text" id="complainantName" placeholder="e.g., Ram Bahadur">
+                <label for="complainantContact">Complainant Contact:</label>
+                <input type="text" id="complainantContact" placeholder="e.g., +977-98XXXXXXXX">
+                <label for="complainDetails">Complain Details:</label>
+                <textarea id="complainDetails" rows="4" placeholder="Describe the complain..."></textarea>
+                <label for="complainStatus">Status:</label>
+                <select id="complainStatus">
+                    <option value="New">New</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                    <option value="Closed">Closed</option>
+                </select>
+
+                <div class="form-actions">
+                    <button id="addComplainEntry">Add Complain</button>
+                    <button id="updateComplainEntry" style="display: none;">Update Complain</button>
+                    <button id="clearComplainFormBtn">Clear Complain Form</button>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="data-section">
+                <h3>All Complain Entries</h3>
+                <table id="complainTable">
+                    <thead>
+                        <tr>
+                            <th>Date (BS)</th>
+                            <th>Complainant Name</th>
+                            <th>Contact</th>
+                            <th>Details</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+                <button id="printComplainData">Print Complain Data</button>
+            </div>
+        </div>
+
+        <div id="settings-app" class="app-section">
+            <div class="settings-section input-section">
+                <h3>General Settings</h3>
+                <label for="companyName">Company Name for Print:</label>
+                <input type="text" id="companyName" placeholder="Your Company Name">
+                <div class="form-actions">
+                    <button id="saveCompanyName">Save Company Name</button>
+                </div>
+            </div>
         </div>
 
         <hr>
 
         <div class="filter-section">
-            <h2>Filter Entries (Both Sections)</h2>
+            <h2>Filter Current Section</h2>
             <input type="text" id="filterInput" placeholder="Filter by any field...">
             <button id="clearFilter">Clear Filter</button>
         </div>
