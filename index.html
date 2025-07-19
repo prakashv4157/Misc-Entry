@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt Entry System</title>
+    <title>Receipt & Finance Tracker</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Receipt Entry System</h1>
+            <h1>Receipt & Finance Tracker</h1>
             <div class="dashboard">
                 <div class="datetime">
                     <span id="currentDate"></span> | <span id="currentTime"></span>
                 </div>
                 <div class="total-info">
-                    Total Entries: <span id="totalEntriesCount">0</span> | Total Amount: <span id="totalAmountSum">0.00</span>
+                    Total Receipts: <span id="totalEntriesCount">0</span> | Receipt Amount: <span id="totalAmountSum">0.00</span>
+                </div>
+                <div class="finance-summary">
+                    Income: <span id="totalIncome">0.00</span> | Expenses: <span id="totalExpenses">0.00</span> | Net Balance: <span id="netBalance">0.00</span>
                 </div>
             </div>
         </header>
@@ -51,9 +54,36 @@
 
 
             <div class="form-actions">
-                <button id="addEntry">Add Entry</button>
-                <button id="updateEntry" style="display: none;">Update Entry</button>
-                <button id="clearFormBtn">Clear Form</button>
+                <button id="addEntry">Add Receipt</button>
+                <button id="updateEntry" style="display: none;">Update Receipt</button>
+                <button id="clearFormBtn">Clear Receipt Form</button>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="input-section finance-section">
+            <h2>Add/Edit Income/Expense</h2>
+            <input type="hidden" id="financeEditIndex"> <label for="financeDate">Date:</label>
+            <input type="date" id="financeDate">
+
+            <label for="financeDescription">Description:</label>
+            <input type="text" id="financeDescription" placeholder="e.g., Salary, Groceries">
+
+            <label for="financeAmount">Amount:</label>
+            <input type="number" id="financeAmount" placeholder="e.g., 500.00">
+
+            <label for="financeType">Type:</label>
+            <select id="financeType">
+                <option value="">-- Select Type --</option>
+                <option value="Income">Income</option>
+                <option value="Expense">Expense</option>
+            </select>
+
+            <div class="form-actions">
+                <button id="addFinanceEntry">Add Transaction</button>
+                <button id="updateFinanceEntry" style="display: none;">Update Transaction</button>
+                <button id="clearFinanceFormBtn">Clear Finance Form</button>
             </div>
         </div>
 
@@ -77,7 +107,7 @@
         <hr>
 
         <div class="data-section">
-            <h2>All Entries</h2>
+            <h2>All Receipt Entries</h2>
             <table id="receiptTable">
                 <thead>
                     <tr>
@@ -93,7 +123,27 @@
                 <tbody>
                     </tbody>
             </table>
-            <button id="printData">Print Displayed Data</button>
+            <button id="printReceiptData">Print Receipt Data</button>
+        </div>
+
+        <hr>
+
+        <div class="data-section">
+            <h2>All Income/Expense Transactions</h2>
+            <table id="financeTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Type</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+            <button id="printFinanceData">Print Finance Data</button>
         </div>
     </div>
 
