@@ -23,7 +23,7 @@ body {
 header {
     text-align: center;
     margin-bottom: 30px;
-    position: relative; /* For logout button positioning */
+    position: relative;
 }
 
 h1 {
@@ -433,111 +433,157 @@ hr {
     }
 }
 
-/* Login Section Styles */
+/* --- Login Section Styles (Updated for colorful and nice look) --- */
 .login-container {
-    background-color: #fff;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #6dd5ed, #2193b0); /* Blue gradient background */
+    padding: 50px 30px; /* Increased padding */
+    border-radius: 15px; /* More rounded corners */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); /* Stronger shadow */
     width: 100%;
-    max-width: 400px;
+    max-width: 450px; /* Slightly wider */
     text-align: center;
     box-sizing: border-box;
-    margin-top: 100px; /* Center vertically */
+    margin-top: 50px; /* Adjust vertical centering */
+    color: #fff; /* White text for contrast */
+    animation: fadeIn 1s ease-out; /* Fade-in animation */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .login-container h2 {
-    color: #2c3e50;
-    margin-bottom: 30px;
-    font-size: 2em;
+    color: #fff; /* White heading */
+    margin-bottom: 35px;
+    font-size: 2.5em; /* Larger heading */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* Subtle text shadow */
 }
 
 .login-container .input-group {
-    margin-bottom: 20px;
+    margin-bottom: 25px; /* More space between inputs */
     text-align: left;
 }
 
 .login-container label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 10px; /* More space below label */
     font-weight: bold;
-    color: #555;
+    color: #e0f7fa; /* Lighter color for labels */
+    font-size: 1.1em;
 }
 
 .login-container input[type="text"],
 .login-container input[type="password"] {
     width: calc(100% - 22px);
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    padding: 15px; /* Larger padding for inputs */
+    border: none; /* No default border */
+    border-radius: 8px; /* More rounded inputs */
     box-sizing: border-box;
-    font-size: 1em;
+    font-size: 1.1em; /* Larger font in inputs */
+    background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white background */
+    color: #333;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Inner shadow */
+    transition: all 0.3s ease;
 }
 
-.login-container button {
+.login-container input[type="text"]:focus,
+.login-container input[type="password"]:focus {
+    background-color: #fff; /* Solid white on focus */
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5), inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Outer glow on focus */
+    outline: none;
+}
+
+.login-container button#loginButton {
     width: 100%;
-    padding: 15px;
-    background-color: #4a69bd;
+    padding: 18px; /* Larger button */
+    background: linear-gradient(45deg, #ff7e5f, #feb47b); /* Warm orange gradient */
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1.2em;
+    font-size: 1.3em; /* Larger font */
     font-weight: bold;
-    transition: background-color 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Button shadow */
+    transition: all 0.3s ease;
+    letter-spacing: 1px; /* Spaced out letters */
 }
 
-.login-container button:hover {
-    background-color: #3b5a9a;
+.login-container button#loginButton:hover {
+    background: linear-gradient(45deg, #feb47b, #ff7e5f); /* Reverse gradient on hover */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Stronger shadow on hover */
+    transform: translateY(-2px); /* Slight lift */
+}
+
+.login-container button#loginButton:active {
+    transform: translateY(0); /* Press effect */
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
 }
 
 .login-note {
-    margin-top: 20px;
-    font-size: 0.9em;
-    color: #777;
+    margin-top: 25px;
+    font-size: 0.95em;
+    color: #c8e6c9; /* Lighter color for note */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Custom Alert Box Styles */
+
+/* --- Custom Alert Box Styles (Enhanced) --- */
 .custom-alert-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    backdrop-filter: blur(5px); /* Blurred background */
 }
 
 .custom-alert-box {
     background-color: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    padding: 35px; /* More padding */
+    border-radius: 10px; /* More rounded */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4); /* Stronger shadow */
     text-align: center;
-    max-width: 350px;
+    max-width: 400px; /* Slightly wider */
     width: 90%;
+    transform: scale(0.9); /* Initial smaller size */
+    animation: alertPopUp 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; /* Pop-up animation */
+}
+
+@keyframes alertPopUp {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
 .custom-alert-box p {
-    font-size: 1.1em;
-    margin-bottom: 20px;
+    font-size: 1.2em; /* Larger message font */
+    margin-bottom: 25px;
     color: #333;
+    font-weight: 500;
 }
 
 .custom-alert-box button {
     background-color: #4a69bd;
     color: white;
-    padding: 10px 20px;
+    padding: 12px 25px; /* Larger button */
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.2s ease;
+    font-size: 1.1em;
+    font-weight: bold;
+    transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .custom-alert-box button:hover {
     background-color: #3b5a9a;
+    transform: translateY(-1px);
+}
+
+.custom-alert-box button:active {
+    transform: translateY(0);
 }
