@@ -18,17 +18,21 @@ const db = app.firestore(); // Firestore database instance (still used for data 
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- Global DOM Elements ---
-    const displayCompanyName = document.getElementById('displayCompanyName');
-    const displayCompanyAddress = document.getElementById('displayCompanyAddress');
-    const displayCompanyContact = document.getElementById('displayCompanyContact');
+    const displayCompanyName = document.getElementById('displayCompanyName'); // In main app header
+    const displayCompanyAddress = document.getElementById('displayCompanyAddress'); // In main app header
+    const displayCompanyContact = document.getElementById('displayCompanyContact'); // In main app header
+    const displayCompanyNameAuth = document.getElementById('displayCompanyNameAuth'); // In auth page
+    const displayCompanyAddressAuth = document.getElementById('displayCompanyAddressAuth'); // In auth page
+    const displayCompanyContactAuth = document.getElementById('displayCompanyContactAuth'); // In auth page
+
     const currentAppName = document.getElementById('currentAppName');
     const navButtons = document.querySelectorAll('.nav-button');
     const filterInput = document.getElementById('filterInput');
     const clearFilterButton = document.getElementById('clearFilter');
     const companyNameInput = document.getElementById('companyName');
-    const companyAddressInput = document.getElementById('companyAddress'); // New
-    const companyContactInput = document.getElementById('companyContact'); // New
-    const saveCompanyDetailsButton = document.getElementById('saveCompanyDetails'); // Changed ID
+    const companyAddressInput = document.getElementById('companyAddress');
+    const companyContactInput = document.getElementById('companyContact');
+    const saveCompanyDetailsButton = document.getElementById('saveCompanyDetails');
     const currentDateADSpan = document.getElementById('currentDateAD');
     const currentDateBSSpan = document.getElementById('currentDateBS');
     const currentTimeSpan = document.getElementById('currentTime');
@@ -120,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Daybook Section DOM Elements (New) ---
     const daybookAppSection = document.getElementById('daybook-app');
     const daybookDateInput = document.getElementById('daybookDate');
-    const daybookTimeInput = document.getElementById('daybookTime');
+    // const daybookTimeInput = document.getElementById('daybookTime'); // Removed
     const daybookActivityInput = document.getElementById('daybookActivity');
     const daybookAmountInput = document.getElementById('daybookAmount');
     const daybookTypeSelect = document.getElementById('daybookType');
@@ -195,15 +199,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveDataToFirestore = async (collectionName, dataArray) => {
         const collectionRef = getGlobalCollectionRef(collectionName);
         try {
-            // For a simple demo, we're replacing the entire collection.
-            // For production, consider using arrayUnion/arrayRemove or managing individual documents
-            // more granularly to avoid excessive writes and reads, especially for large datasets.
-
-            // Fetch all existing documents in the collection
             const snapshot = await collectionRef.get();
             const batch = db.batch();
 
-            // Delete existing documents in the collection
+            // Delete existing documents in the collection to fully sync with local array
             snapshot.docs.forEach(doc => {
                 batch.delete(doc.ref);
             });
@@ -266,9 +265,13 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('companyAddress', companyAddress);
         localStorage.setItem('companyContact', companyContact);
 
+        // Update displays in both main app header and auth page
         displayCompanyName.textContent = companyName;
         displayCompanyAddress.textContent = companyAddress;
         displayCompanyContact.textContent = companyContact;
+        displayCompanyNameAuth.textContent = companyName;
+        displayCompanyAddressAuth.textContent = companyAddress;
+        displayCompanyContactAuth.textContent = companyContact;
 
         showAlert('Company details saved!');
     };
@@ -291,9 +294,13 @@ document.addEventListener('DOMContentLoaded', () => {
             companyContactInput.value = storedCompanyContact;
         }
 
+        // Update displays in both main app header and auth page
         displayCompanyName.textContent = companyName;
         displayCompanyAddress.textContent = companyAddress;
         displayCompanyContact.textContent = companyContact;
+        displayCompanyNameAuth.textContent = companyName;
+        displayCompanyAddressAuth.textContent = companyAddress;
+        displayCompanyContactAuth.textContent = companyContact;
     };
 
 
@@ -340,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Sort by date (newest first)
         dataToRender.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        dataToRender.forEach((entry) => { // Removed index, using entry.id directly
+        dataToRender.forEach((entry) => {
             const row = receiptTableBody.insertRow();
             row.insertCell().textContent = convertADToBS(entry.date);
             row.insertCell().textContent = entry.receiptNo;
@@ -354,7 +361,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const editButton = document.createElement('button');
             editButton.textContent = 'Edit';
             editButton.classList.add('edit-btn');
-            // We pass the Firestore ID for actual deletion/update
             editButton.addEventListener('click', () => editReceiptEntry(entry));
             actionsCell.appendChild(editButton);
 
@@ -381,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         dataToRender.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        dataToRender.forEach((transaction) => { // Removed index
+        dataToRender.forEach((transaction) => {
             const row = financeTableBody.insertRow();
             row.insertCell().textContent = convertADToBS(transaction.date);
             row.insertCell().textContent = transaction.description;
@@ -408,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderVisitorTable = (dataToRender) => {
         visitorTableBody.innerHTML = '';
         if (dataToRender.length === 0 && filterInput.value === '') {
-            const noDataRow = visitorTableBody.insertRow(); // Changed from insertCell to insertRow
+            const noDataRow = visitorTableBody.insertRow();
             const cell = noDataRow.insertCell();
             cell.colSpan = 7;
             cell.textContent = "No visitor entries yet. Add one above!";
@@ -419,7 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         dataToRender.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        dataToRender.forEach((visitor) => { // Removed index
+        dataToRender.forEach((visitor) => {
             const row = visitorTableBody.insertRow();
             row.insertCell().textContent = convertADToBS(visitor.date);
             row.insertCell().textContent = visitor.name;
@@ -458,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         dataToRender.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        dataToRender.forEach((complain) => { // Removed index
+        dataToRender.forEach((complain) => {
             const row = complainTableBody.insertRow();
             row.insertCell().textContent = convertADToBS(complain.date);
             row.insertCell().textContent = complain.complainantName;
@@ -488,24 +494,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dataToRender.length === 0 && filterInput.value === '') {
             const noDataRow = daybookTableBody.insertRow();
             const cell = noDataRow.insertCell();
-            cell.colSpan = 6; // Adjust colspan for Daybook columns
+            cell.colSpan = 5; // Adjusted colspan: Date, Activity, Amount, Type, Actions
             cell.textContent = "No daybook entries yet. Add one above!";
             cell.style.textAlign = 'center';
             cell.style.fontStyle = 'italic';
             cell.style.padding = '20px';
         }
 
-        // Sort by date and then time (newest first)
+        // Sort by date (newest first)
         dataToRender.sort((a, b) => {
-            const dateA = new Date(`${a.date}T${a.time}`);
-            const dateB = new Date(`${b.date}T${b.time}`);
+            const dateA = new Date(a.date);
+            const dateB = new Date(b.date);
             return dateB - dateA;
         });
 
-        dataToRender.forEach((entry) => { // Removed index
+        dataToRender.forEach((entry) => {
             const row = daybookTableBody.insertRow();
             row.insertCell().textContent = convertADToBS(entry.date);
-            row.insertCell().textContent = entry.time;
+            // row.insertCell().textContent = entry.time; // Removed time from table
             row.insertCell().textContent = entry.activity;
             row.insertCell().textContent = entry.amount ? parseFloat(entry.amount).toFixed(2) : '-';
             row.insertCell().textContent = entry.type || '-';
@@ -539,12 +545,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (date && receiptNo && !isNaN(amount) && name && classVal && category) {
             const newEntry = { date, receiptNo, amount, name, class: classVal, category };
             try {
-                const docRef = await getGlobalCollectionRef('receipts').add(newEntry); // Add to Firestore
-                receiptEntries.push({ id: docRef.id, ...newEntry }); // Add with Firestore ID
-                applyFilter(); // Re-render table with new data
+                const docRef = await getGlobalCollectionRef('receipts').add(newEntry);
+                receiptEntries.push({ id: docRef.id, ...newEntry });
+                applyFilter();
                 clearReceiptForm();
                 showAlert('Receipt entry added successfully!');
-                await saveReceiptEntries(); // Save to Firestore immediately after add
+                await saveReceiptEntries();
             } catch (error) {
                 console.error("Error adding receipt:", error);
                 showAlert(`Error adding receipt: ${error.message}`);
@@ -561,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
         nameInput.value = entry.name;
         classInput.value = entry.class;
         categorySelect.value = entry.category;
-        editIndexHidden.value = entry.id; // Store Firestore ID for editing
+        editIndexHidden.value = entry.id;
 
         addEntryButton.style.display = 'none';
         updateEntryButton.style.display = 'inline-block';
@@ -583,19 +589,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (date && receiptNo && !isNaN(amount) && name && classVal && category) {
             const updatedEntry = { date, receiptNo, amount, name, class: classVal, category };
             try {
-                await getGlobalCollectionRef('receipts').doc(docIdToUpdate).update(updatedEntry); // Update in Firestore
-                // Update local array
+                await getGlobalCollectionRef('receipts').doc(docIdToUpdate).update(updatedEntry);
                 const indexInArray = receiptEntries.findIndex(e => e.id === docIdToUpdate);
                 if (indexInArray !== -1) {
                     receiptEntries[indexInArray] = { id: docIdToUpdate, ...updatedEntry };
                 }
-                applyFilter(); // Re-render table with updated data
+                applyFilter();
                 clearReceiptForm();
                 addEntryButton.style.display = 'inline-block';
                 updateEntryButton.style.display = 'none';
                 showAlert('Receipt entry updated successfully!');
-                await saveReceiptEntries(); // Save to Firestore immediately after update
-            } catch (error) {
+                await saveReceiptEntries();
+            }
+            catch (error) {
                 console.error("Error updating receipt:", error);
                 showAlert(`Error updating receipt: ${error.message}`);
             }
@@ -607,14 +613,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteReceiptEntry = async (docIdToDelete) => {
         if (confirm('Are you sure you want to delete this receipt entry?')) {
             try {
-                await getGlobalCollectionRef('receipts').doc(docIdToDelete).delete(); // Delete from Firestore
-                receiptEntries = receiptEntries.filter(entry => entry.id !== docIdToDelete); // Update local array
-                applyFilter(); // Re-render table
+                await getGlobalCollectionRef('receipts').doc(docIdToDelete).delete();
+                receiptEntries = receiptEntries.filter(entry => entry.id !== docIdToDelete);
+                applyFilter();
                 clearReceiptForm();
                 addEntryButton.style.display = 'inline-block';
                 updateEntryButton.style.display = 'none';
                 showAlert('Receipt entry deleted!');
-                await saveReceiptEntries(); // Save to Firestore immediately after delete
+                await saveReceiptEntries();
             } catch (error) {
                 console.error("Error deleting receipt:", error);
                 showAlert(`Error deleting receipt: ${error.message}`);
@@ -898,13 +904,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- New CRUD Operations - Daybook ---
     addDaybookEntryButton.addEventListener('click', async () => {
         const date = daybookDateInput.value;
-        const time = daybookTimeInput.value;
+        // const time = daybookTimeInput.value; // Removed time
         const activity = daybookActivityInput.value.trim();
         const amount = daybookAmountInput.value.trim() ? parseFloat(daybookAmountInput.value.trim()) : 0; // Optional amount
         const type = daybookTypeSelect.value || 'General'; // Default to 'General' if not selected
 
-        if (date && time && activity) {
-            const newDaybookEntry = { date, time, activity, amount, type };
+        if (date && activity) { // Removed time from validation
+            const newDaybookEntry = { date, activity, amount, type }; // Removed time from object
             try {
                 const docRef = await getGlobalCollectionRef('daybook').add(newDaybookEntry);
                 daybookEntries.push({ id: docRef.id, ...newDaybookEntry });
@@ -917,13 +923,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 showAlert(`Error adding daybook entry: ${error.message}`);
             }
         } else {
-            showAlert('Please fill in Date, Time, and Activity for the daybook entry.');
+            showAlert('Please fill in Date and Activity for the daybook entry.'); // Updated alert message
         }
     });
 
     const editDaybookEntry = (entry) => {
         daybookDateInput.value = entry.date;
-        daybookTimeInput.value = entry.time;
+        // daybookTimeInput.value = entry.time; // Removed time
         daybookActivityInput.value = entry.activity;
         daybookAmountInput.value = entry.amount || ''; // Handle optional amount
         daybookTypeSelect.value = entry.type || ''; // Handle optional type
@@ -940,13 +946,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const date = daybookDateInput.value;
-        const time = daybookTimeInput.value;
+        // const time = daybookTimeInput.value; // Removed time
         const activity = daybookActivityInput.value.trim();
         const amount = daybookAmountInput.value.trim() ? parseFloat(daybookAmountInput.value.trim()) : 0;
         const type = daybookTypeSelect.value || 'General';
 
-        if (date && time && activity) {
-            const updatedEntry = { date, time, activity, amount, type };
+        if (date && activity) { // Removed time from validation
+            const updatedEntry = { date, activity, amount, type }; // Removed time from object
             try {
                 await getGlobalCollectionRef('daybook').doc(docIdToUpdate).update(updatedEntry);
                 const indexInArray = daybookEntries.findIndex(e => e.id === docIdToUpdate);
@@ -964,7 +970,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showAlert(`Error updating daybook entry: ${error.message}`);
             }
         } else {
-            showAlert('Please fill in all daybook fields correctly for update.');
+            showAlert('Please fill in all daybook fields correctly for update.'); // Updated alert message
         }
     });
 
@@ -995,6 +1001,7 @@ document.addEventListener('DOMContentLoaded', () => {
         nameInput.value = '';
         classInput.value = '';
         categorySelect.value = '';
+        newCategoryInput.value = ''; // Clear new category input
         editIndexHidden.value = '';
         addEntryButton.style.display = 'inline-block';
         updateEntryButton.style.display = 'none';
@@ -1036,7 +1043,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- New: Clear Daybook Form ---
     const clearDaybookForm = () => {
         setTodayDate(daybookDateInput);
-        setCurrentTime(daybookTimeInput);
+        // setCurrentTime(daybookTimeInput); // Removed time
         daybookActivityInput.value = '';
         daybookAmountInput.value = '';
         daybookTypeSelect.value = '';
@@ -1245,7 +1252,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Logged in to simple system.");
 
             // Load all data from Firestore (now from global collections)
-            // Wrap in a try-catch to handle potential Firestore loading errors gracefully
             try {
                 receiptEntries = await loadDataFromFirestore('receipts');
                 financeTransactions = await loadDataFromFirestore('finance');
@@ -1296,7 +1302,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Clear all local data
                 receiptEntries = [];
                 financeTransactions = [];
-                visitors = [];
+visitors = [];
                 complains = [];
                 daybookEntries = []; // New
 
@@ -1329,7 +1335,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Set current time for relevant time inputs
         setCurrentTime(timeInInput);
-        setCurrentTime(daybookTimeInput); // New
+        // setCurrentTime(daybookTimeInput); // Removed time from daybook
 
         // Start time update
         updateDateTime();
