@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Custom Alert/Message Box -->
     <div id="customAlert" class="custom-alert-overlay" style="display: none;">
         <div class="custom-alert-box">
             <p id="customAlertMessage"></p>
@@ -15,27 +14,64 @@
         </div>
     </div>
 
-    <!-- Login Section -->
-    <div id="login-section" class="login-container">
-        <h2>Login to System</h2>
-        <div class="input-group">
-            <label for="loginUsername">Username:</label>
-            <input type="text" id="loginUsername" placeholder="Enter username">
+    <div id="auth-section" class="auth-container">
+        <div id="login-form" class="auth-form active-form">
+            <h2>Login to System</h2>
+            <div class="input-group">
+                <label for="loginEmail">Email:</label>
+                <input type="email" id="loginEmail" placeholder="Enter email">
+            </div>
+            <div class="input-group">
+                <label for="loginPassword">Password:</label>
+                <input type="password" id="loginPassword" placeholder="Enter password">
+            </div>
+            <button id="loginButton">Login</button>
+            <button id="googleLoginButton" class="google-btn">Login with Google</button>
+            <p class="auth-link">
+                <a href="#" id="showRegister">Don't have an account? Register</a>
+            </p>
+            <p class="auth-link">
+                <a href="#" id="showResetPassword">Forgot password?</a>
+            </p>
         </div>
-        <div class="input-group">
-            <label for="loginPassword">Password:</label>
-            <input type="password" id="loginPassword" placeholder="Enter password">
+
+        <div id="register-form" class="auth-form">
+            <h2>Register New Account</h2>
+            <div class="input-group">
+                <label for="registerEmail">Email:</label>
+                <input type="email" id="registerEmail" placeholder="Enter email">
+            </div>
+            <div class="input-group">
+                <label for="registerPassword">Password:</label>
+                <input type="password" id="registerPassword" placeholder="Create password">
+            </div>
+            <div class="input-group">
+                <label for="confirmPassword">Confirm Password:</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm password">
+            </div>
+            <button id="registerButton">Register</button>
+            <p class="auth-link">
+                <a href="#" id="showLoginFromRegister">Already have an account? Login</a>
+            </p>
         </div>
-        <button id="loginButton">Login</button>
-        <p class="login-note">Default: user / password (client-side only, not secure)</p>
+
+        <div id="reset-password-form" class="auth-form">
+            <h2>Reset Password</h2>
+            <div class="input-group">
+                <label for="resetEmail">Email:</label>
+                <input type="email" id="resetEmail" placeholder="Enter your email">
+            </div>
+            <button id="resetPasswordButton">Send Reset Email</button>
+            <p class="auth-link">
+                <a href="#" id="showLoginFromReset">Back to Login</a>
+            </p>
+        </div>
     </div>
 
-    <!-- Main Application Container -->
     <div id="main-app-container" class="container" style="display: none;">
         <header>
             <h1><span id="displayCompanyName">Your Company Name</span></h1>
-            <h2 id="currentAppName">Receipts</h2> <!-- Default app name -->
-            <div class="dashboard">
+            <h2 id="currentAppName">Receipts</h2> <div class="dashboard">
                 <div class="datetime">
                     <span id="currentDateAD"></span> | <span id="currentDateBS"></span> | <span id="currentTime"></span>
                 </div>
@@ -59,7 +95,6 @@
 
         <hr>
 
-        <!-- Receipts Application Section -->
         <div id="receipts-app" class="app-section active-app">
             <div class="input-section">
                 <h3>Add/Edit Receipt Entry</h3>
@@ -115,14 +150,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Receipt Data will be inserted here by JavaScript -->
-                    </tbody>
+                        </tbody>
                 </table>
                 <button id="printReceiptData">Print Receipt Data</button>
             </div>
         </div>
 
-        <!-- Finance Application Section -->
         <div id="finance-app" class="app-section">
             <div class="input-section finance-section">
                 <h3>Add/Edit Income/Expense</h3>
@@ -165,14 +198,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Finance Data will be inserted here by JavaScript -->
-                    </tbody>
+                        </tbody>
                 </table>
                 <button id="printFinanceData">Print Finance Data</button>
             </div>
         </div>
 
-        <!-- Visitors Application Section -->
         <div id="visitors-app" class="app-section">
             <div class="input-section visitor-section">
                 <h3>Add/Edit Visitor Entry</h3>
@@ -214,14 +245,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Visitor Data will be inserted here by JavaScript -->
-                    </tbody>
+                        </tbody>
                 </table>
                 <button id="printVisitorData">Print Visitor Data</button>
             </div>
         </div>
 
-        <!-- Complains Application Section -->
         <div id="complains-app" class="app-section">
             <div class="input-section complain-section">
                 <h3>Add/Edit Complain Entry</h3>
@@ -265,14 +294,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Complain Data will be inserted here by JavaScript -->
-                    </tbody>
+                        </tbody>
                 </table>
                 <button id="printComplainData">Print Complain Data</button>
             </div>
         </div>
 
-        <!-- Settings Application Section -->
         <div id="settings-app" class="app-section">
             <div class="settings-section input-section">
                 <h3>General Settings</h3>
@@ -293,7 +320,9 @@
         </div>
     </div>
 
-    <!-- Include the Nepali Date Converter library BEFORE your script.js -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="nepalidate.min.js"></script>
     <script src="script.js"></script>
 </body>
