@@ -3,352 +3,349 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integrated Management System</title>
+    <title>Office Management System</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://nepalidatepicker.sajanmaharjan.com.np/nepali.datepicker.v3.7.min.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
-    <div id="customAlert" class="custom-alert-overlay" style="display: none;">
-        <div class="custom-alert-box">
-            <p id="customAlertMessage"></p>
-            <button id="customAlertCloseBtn">OK</button>
+    <div id="auth-section" class="auth-container">
+        <div class="login-card">
+            <h1>Login to OMS</h1>
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="usernameInput">Username:</label>
+                    <input type="text" id="usernameInput" value="Admin" required>
+                </div>
+                <div class="input-group">
+                    <label for="passwordInput">Password:</label>
+                    <input type="password" id="passwordInput" value="Admin123" required>
+                </div>
+                <button type="button" id="simpleLoginButton">Login</button>
+            </form>
         </div>
     </div>
 
-    <div id="auth-section" class="auth-container">
-        <div id="login-form" class="auth-form active-form">
-            <h2>Login to System</h2>
-            <div class="input-group">
-                <label for="usernameInput">Username:</label>
-                <input type="text" id="usernameInput" placeholder="Enter username" value="Admin">
+    <div id="main-app-container" class="app-container" style="display: none;">
+        <header class="header">
+            <div class="company-info">
+                <span id="displayCompanyName" class="company-name">Your Company Name</span>
+                <span id="displayCompanyAddress" class="company-address">Your Company Address</span>
+                <span id="displayCompanyContact" class="company-contact">Your Company Contact No</span>
             </div>
-            <div class="input-group">
-                <label for="passwordInput">Password:</label>
-                <input type="password" id="passwordInput" placeholder="Enter password" value="Admin123">
+            <div class="app-status">
+                <span id="currentAppName" class="app-name">Receipts</span>
+                <div class="date-time">
+                    <span id="currentDateAD"></span>
+                    <span id="currentDateBS"></span>
+                    <span id="currentTime"></span>
+                </div>
             </div>
-            <button id="simpleLoginButton">Login</button>
-            <p class="auth-link" style="color: #c8e6c9; font-size: 0.85em; margin-top: 15px;">
-                Note: This login is for demonstration only and has hardcoded credentials (Admin/Admin123).
-                <br>
-                **DO NOT USE FOR REAL APPLICATIONS!**
-            </p>
-        </div>
-        </div>
-
-    <div id="main-app-container" class="container" style="display: none;">
-        <header>
-            <h1><span id="displayCompanyName">Your Company Name</span></h1>
-            <div class="company-details">
-                <p>Address: <span id="displayCompanyAddress">Your Company Address</span></p>
-                <p>Contact: <span id="displayCompanyContact">Your Company Contact No</span></p>
-            </div>
-            <h2 id="currentAppName">Receipts</h2> <div class="dashboard">
-                <div class="datetime">
-                    <span id="currentDateAD"></span> | <span id="currentDateBS"></span> | <span id="currentTime"></span>
-                </div>
-                <div class="total-info">
-                    Total Receipts: <span id="totalEntriesCount">0</span> | Receipt Amount: <span id="totalAmountSum">0.00</span>
-                </div>
-                <div class="finance-summary">
-                    Income: <span id="totalIncome">0.00</span> | Expenses: <span id="totalExpenses">0.00</span> | Net Balance: <span id="netBalance">0.00</span>
-                </div>
-                <button id="logoutButton" class="logout-btn">Logout</button>
+            <div class="actions">
+                <input type="text" id="filterInput" placeholder="Filter current table...">
+                <button id="clearFilter">Clear Filter</button>
+                <button id="logoutButton" class="logout-button">Logout</button>
             </div>
         </header>
 
-        <nav class="main-nav">
+        <nav class="sidebar">
             <button class="nav-button active" data-target="receipts-app" data-app-name="Receipts">Receipts</button>
             <button class="nav-button" data-target="finance-app" data-app-name="Finance">Finance</button>
             <button class="nav-button" data-target="visitors-app" data-app-name="Visitors">Visitors</button>
             <button class="nav-button" data-target="complains-app" data-app-name="Complains">Complains</button>
             <button class="nav-button" data-target="daybook-app" data-app-name="Daybook">Daybook</button>
             <button class="nav-button" data-target="settings-app" data-app-name="Settings">Settings</button>
+            <div class="dashboard-metrics">
+                <h3>Dashboard</h3>
+                <p>Total Receipts: <span id="totalEntriesCount">0</span></p>
+                <p>Total Receipt Amount: <span id="totalAmountSum">0.00</span></p>
+                <p>Total Income: <span id="totalIncome">0.00</span></p>
+                <p>Total Expenses: <span id="totalExpenses">0.00</span></p>
+                <p>Net Balance: <span id="netBalance">0.00</span></p>
+            </div>
         </nav>
 
-        <hr>
-
-        <div id="receipts-app" class="app-section active-app">
-            <div class="input-section">
-                <h3>Add/Edit Receipt Entry</h3>
-                <input type="hidden" id="editIndex">
-                <label for="receiptDate">Date (AD):</label>
-                <input type="date" id="receiptDate">
-
-                <label for="receiptNo">Receipt No.:</label>
-                <input type="text" id="receiptNo" placeholder="e.g., R001">
-
-                <label for="amount">Amount:</label>
-                <input type="number" id="amount" placeholder="e.g., 100.00">
-
-                <label for="name">Name:</label>
-                <input type="text" id="name" placeholder="e.g., John Doe">
-
-                <label for="class">Class:</label>
-                <input type="text" id="class" placeholder="e.g., Grade 5">
-
-                <label for="category">Category:</label>
-                <select id="category">
-                    <option value="">-- Select Category --</option>
-                    <option value="Tuition">Tuition</option>
-                    <option value="Books">Books</option>
-                    <option value="Fees">Fees</option>
-                    <option value="Supplies">Supplies</option>
-                    <option value="Other">Other</option>
-                </select>
-                <input type="text" id="newCategory" placeholder="Add New Category (Optional)">
-                <button id="addCategoryBtn">Add New Category</button>
-
-                <div class="form-actions">
-                    <button id="addEntry">Add Receipt</button>
-                    <button id="updateEntry" style="display: none;">Update Receipt</button>
-                    <button id="clearFormBtn">Clear Receipt Form</button>
+        <main class="content">
+            <section id="receipts-app" class="app-section active-app">
+                <h2>Receipt Entry</h2>
+                <div class="form-container">
+                    <input type="hidden" id="editIndex">
+                    <div class="input-row">
+                        <label for="receiptDate">Date:</label>
+                        <input type="date" id="receiptDate">
+                        <label for="receiptNo">Receipt No:</label>
+                        <input type="text" id="receiptNo">
+                        <label for="amount">Amount:</label>
+                        <input type="number" id="amount" step="0.01">
+                    </div>
+                    <div class="input-row">
+                        <label for="name">Name:</label>
+                        <input type="text" id="name">
+                        <label for="class">Class:</label>
+                        <input type="text" id="class">
+                        <label for="category">Category:</label>
+                        <select id="category"></select>
+                    </div>
+                    <div class="input-row">
+                        <label for="newCategory">New Category:</label>
+                        <input type="text" id="newCategory" placeholder="Add new category">
+                        <button id="addCategoryBtn">Add Category</button>
+                    </div>
+                    <div class="button-row">
+                        <button id="addEntry">Add Entry</button>
+                        <button id="updateEntry" style="display: none;">Update Entry</button>
+                        <button id="clearFormBtn">Clear Form</button>
+                    </div>
                 </div>
-            </div>
-
-            <hr>
-
-            <div class="data-section">
-                <h3>All Receipt Entries</h3>
-                <table id="receiptTable">
-                    <thead>
-                        <tr>
-                            <th>Date (BS)</th>
-                            <th>Receipt No.</th>
-                            <th>Amount</th>
-                            <th>Name</th>
-                            <th>Class</th>
-                            <th>Category</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
-                <button id="printReceiptData">Print Receipt Data</button>
-            </div>
-        </div>
-
-        <div id="finance-app" class="app-section">
-            <div class="input-section finance-section">
-                <h3>Add/Edit Income/Expense</h3>
-                <input type="hidden" id="financeEditIndex">
-                <label for="financeDate">Date (AD):</label>
-                <input type="date" id="financeDate">
-
-                <label for="financeDescription">Description:</label>
-                <input type="text" id="financeDescription" placeholder="e.g., Salary, Groceries">
-
-                <label for="financeAmount">Amount:</label>
-                <input type="number" id="financeAmount" placeholder="e.g., 500.00">
-
-                <label for="financeType">Type:</label>
-                <select id="financeType">
-                    <option value="">-- Select Type --</option>
-                    <option value="Income">Income</option>
-                    <option value="Expense">Expense</option>
-                </select>
-
-                <div class="form-actions">
-                    <button id="addFinanceEntry">Add Transaction</button>
-                    <button id="updateFinanceEntry" style="display: none;">Update Transaction</button>
-                    <button id="clearFinanceFormBtn">Clear Finance Form</button>
+                <div class="table-actions">
+                    <button id="printReceiptData">Print Data</button>
                 </div>
-            </div>
-
-            <hr>
-
-            <div class="data-section">
-                <h3>All Income/Expense Transactions</h3>
-                <table id="financeTable">
-                    <thead>
-                        <tr>
-                            <th>Date (BS)</th>
-                            <th>Description</th>
-                            <th>Amount</th>
-                            <th>Type</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
-                <button id="printFinanceData">Print Finance Data</button>
-            </div>
-        </div>
-
-        <div id="visitors-app" class="app-section">
-            <div class="input-section visitor-section">
-                <h3>Add/Edit Visitor Entry</h3>
-                <input type="hidden" id="visitorEditIndex">
-                <label for="visitorDate">Date (AD):</label>
-                <input type="date" id="visitorDate">
-                <label for="visitorName">Name:</label>
-                <input type="text" id="visitorName" placeholder="e.g., Jane Doe">
-                <label for="visitorContact">Contact:</label>
-                <input type="text" id="visitorContact" placeholder="e.g., +977-98XXXXXXXX">
-                <label for="visitorPurpose">Purpose:</label>
-                <input type="text" id="visitorPurpose" placeholder="e.g., Meeting, Delivery">
-                <label for="timeIn">Time In:</label>
-                <input type="time" id="timeIn">
-                <label for="timeOut">Time Out:</label>
-                <input type="time" id="timeOut">
-
-                <div class="form-actions">
-                    <button id="addVisitorEntry">Add Visitor</button>
-                    <button id="updateVisitorEntry" style="display: none;">Update Visitor</button>
-                    <button id="clearVisitorFormBtn">Clear Visitor Form</button>
+                <div class="table-container">
+                    <table id="receiptTable">
+                        <thead>
+                            <tr>
+                                <th>Date (BS)</th>
+                                <th>Receipt No</th>
+                                <th>Amount</th>
+                                <th>Name</th>
+                                <th>Class</th>
+                                <th>Category</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
                 </div>
-            </div>
+            </section>
 
-            <hr>
-
-            <div class="data-section">
-                <h3>All Visitor Entries</h3>
-                <table id="visitorTable">
-                    <thead>
-                        <tr>
-                            <th>Date (BS)</th>
-                            <th>Name</th>
-                            <th>Contact</th>
-                            <th>Purpose</th>
-                            <th>Time In</th>
-                            <th>Time Out</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
-                <button id="printVisitorData">Print Visitor Data</button>
-            </div>
-        </div>
-
-        <div id="complains-app" class="app-section">
-            <div class="input-section complain-section">
-                <h3>Add/Edit Complain Entry</h3>
-                <input type="hidden" id="complainEditIndex">
-                <label for="complainDate">Date (AD):</label>
-                <input type="date" id="complainDate">
-                <label for="complainantName">Complainant Name:</label>
-                <input type="text" id="complainantName" placeholder="e.g., Ram Bahadur">
-                <label for="complainantContact">Complainant Contact:</label>
-                <input type="text" id="complainantContact" placeholder="e.g., +977-98XXXXXXXX">
-                <label for="complainDetails">Complain Details:</label>
-                <textarea id="complainDetails" rows="4" placeholder="Describe the complain..."></textarea>
-                <label for="complainStatus">Status:</label>
-                <select id="complainStatus">
-                    <option value="New">New</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
-                    <option value="Closed">Closed</option>
-                </select>
-
-                <div class="form-actions">
-                    <button id="addComplainEntry">Add Complain</button>
-                    <button id="updateComplainEntry" style="display: none;">Update Complain</button>
-                    <button id="clearComplainFormBtn">Clear Complain Form</button>
+            <section id="finance-app" class="app-section">
+                <h2>Finance Entry (Income/Expense)</h2>
+                <div class="form-container">
+                    <input type="hidden" id="financeEditIndex">
+                    <div class="input-row">
+                        <label for="financeDate">Date:</label>
+                        <input type="date" id="financeDate">
+                        <label for="financeType">Type:</label>
+                        <select id="financeType">
+                            <option value="">-- Select Type --</option>
+                            <option value="Income">Income</option>
+                            <option value="Expense">Expense</option>
+                        </select>
+                        <label for="financeAmount">Amount:</label>
+                        <input type="number" id="financeAmount" step="0.01">
+                    </div>
+                    <div class="input-row full-width">
+                        <label for="financeDescription">Description:</label>
+                        <input type="text" id="financeDescription">
+                    </div>
+                    <div class="button-row">
+                        <button id="addFinanceEntry">Add Entry</button>
+                        <button id="updateFinanceEntry" style="display: none;">Update Entry</button>
+                        <button id="clearFinanceFormBtn">Clear Form</button>
+                    </div>
                 </div>
-            </div>
-
-            <hr>
-
-            <div class="data-section">
-                <h3>All Complain Entries</h3>
-                <table id="complainTable">
-                    <thead>
-                        <tr>
-                            <th>Date (BS)</th>
-                            <th>Complainant Name</th>
-                            <th>Contact</th>
-                            <th>Details</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
-                <button id="printComplainData">Print Complain Data</button>
-            </div>
-        </div>
-
-        <div id="daybook-app" class="app-section">
-            <div class="input-section daybook-section">
-                <h3>Add/Edit Daybook Entry</h3>
-                <input type="hidden" id="daybookEditIndex">
-                <label for="daybookDate">Date (AD):</label>
-                <input type="date" id="daybookDate">
-                <label for="daybookTime">Time:</label>
-                <input type="time" id="daybookTime">
-                <label for="daybookActivity">Activity/Description:</label>
-                <textarea id="daybookActivity" rows="4" placeholder="e.g., Received school fees, Customer visit for query, Reported issue with network."></textarea>
-                <label for="daybookAmount">Amount (if applicable):</label>
-                <input type="number" id="daybookAmount" placeholder="e.g., 500.00 (optional)">
-                <label for="daybookType">Type (optional):</label>
-                <select id="daybookType">
-                    <option value="">-- Select Type --</option>
-                    <option value="Income">Income</option>
-                    <option value="Expense">Expense</option>
-                    <option value="Visitor">Visitor</option>
-                    <option value="Complain">Complain</option>
-                    <option value="General">General</option>
-                </select>
-
-                <div class="form-actions">
-                    <button id="addDaybookEntry">Add Daybook Entry</button>
-                    <button id="updateDaybookEntry" style="display: none;">Update Daybook Entry</button>
-                    <button id="clearDaybookFormBtn">Clear Daybook Form</button>
+                <div class="table-actions">
+                    <button id="printFinanceData">Print Data</button>
                 </div>
-            </div>
-
-            <hr>
-
-            <div class="data-section">
-                <h3>All Daybook Entries</h3>
-                <table id="daybookTable">
-                    <thead>
-                        <tr>
-                            <th>Date (BS)</th>
-                            <th>Time</th>
-                            <th>Activity/Description</th>
-                            <th>Amount</th>
-                            <th>Type</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
-                <button id="printDaybookData">Print Daybook Data</button>
-            </div>
-        </div>
-
-        <div id="settings-app" class="app-section">
-            <div class="settings-section input-section">
-                <h3>General Settings</h3>
-                <label for="companyName">Company Name for Print:</label>
-                <input type="text" id="companyName" placeholder="Your Company Name">
-                <label for="companyAddress">Company Address:</label>
-                <input type="text" id="companyAddress" placeholder="Your Company Address">
-                <label for="companyContact">Company Contact No:</label>
-                <input type="text" id="companyContact" placeholder="Your Company Contact Number">
-                <div class="form-actions">
-                    <button id="saveCompanyDetails">Save Company Details</button>
+                <div class="table-container">
+                    <table id="financeTable">
+                        <thead>
+                            <tr>
+                                <th>Date (BS)</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <hr>
+            <section id="visitors-app" class="app-section">
+                <h2>Visitor Entry</h2>
+                <div class="form-container">
+                    <input type="hidden" id="visitorEditIndex">
+                    <div class="input-row">
+                        <label for="visitorDate">Date:</label>
+                        <input type="date" id="visitorDate">
+                        <label for="visitorName">Name:</label>
+                        <input type="text" id="visitorName">
+                        <label for="visitorContact">Contact:</label>
+                        <input type="text" id="visitorContact">
+                    </div>
+                    <div class="input-row">
+                        <label for="visitorPurpose">Purpose:</label>
+                        <input type="text" id="visitorPurpose">
+                        <label for="timeIn">Time In:</label>
+                        <input type="time" id="timeIn">
+                        <label for="timeOut">Time Out:</label>
+                        <input type="time" id="timeOut">
+                    </div>
+                    <div class="button-row">
+                        <button id="addVisitorEntry">Add Entry</button>
+                        <button id="updateVisitorEntry" style="display: none;">Update Entry</button>
+                        <button id="clearVisitorFormBtn">Clear Form</button>
+                    </div>
+                </div>
+                <div class="table-actions">
+                    <button id="printVisitorData">Print Data</button>
+                </div>
+                <div class="table-container">
+                    <table id="visitorTable">
+                        <thead>
+                            <tr>
+                                <th>Date (BS)</th>
+                                <th>Name</th>
+                                <th>Contact</th>
+                                <th>Purpose</th>
+                                <th>Time In</th>
+                                <th>Time Out</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+            </section>
 
-        <div class="filter-section">
-            <h2>Filter Current Section</h2>
-            <input type="text" id="filterInput" placeholder="Filter by any field...">
-            <button id="clearFilter">Clear Filter</button>
+            <section id="complains-app" class="app-section">
+                <h2>Complain Entry</h2>
+                <div class="form-container">
+                    <input type="hidden" id="complainEditIndex">
+                    <div class="input-row">
+                        <label for="complainDate">Date:</label>
+                        <input type="date" id="complainDate">
+                        <label for="complainantName">Complainant Name:</label>
+                        <input type="text" id="complainantName">
+                        <label for="complainantContact">Contact:</label>
+                        <input type="text" id="complainantContact">
+                    </div>
+                    <div class="input-row">
+                        <label for="complainDetails">Complain Details:</label>
+                        <input type="text" id="complainDetails">
+                        <label for="complainStatus">Status:</label>
+                        <select id="complainStatus">
+                            <option value="New">New</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+                    <div class="button-row">
+                        <button id="addComplainEntry">Add Entry</button>
+                        <button id="updateComplainEntry" style="display: none;">Update Entry</button>
+                        <button id="clearComplainFormBtn">Clear Form</button>
+                    </div>
+                </div>
+                <div class="table-actions">
+                    <button id="printComplainData">Print Data</button>
+                </div>
+                <div class="table-container">
+                    <table id="complainTable">
+                        <thead>
+                            <tr>
+                                <th>Date (BS)</th>
+                                <th>Complainant Name</th>
+                                <th>Contact</th>
+                                <th>Details</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="daybook-app" class="app-section">
+                <h2>Daybook Entry</h2>
+                <div class="form-container">
+                    <input type="hidden" id="daybookEditIndex">
+                    <div class="input-row">
+                        <label for="daybookDate">Date:</label>
+                        <input type="date" id="daybookDate">
+                        <label for="daybookTime">Time:</label>
+                        <input type="time" id="daybookTime">
+                        <label for="daybookAmount">Amount:</label>
+                        <input type="number" id="daybookAmount" step="0.01" placeholder="Optional">
+                    </div>
+                    <div class="input-row full-width">
+                        <label for="daybookActivity">Activity:</label>
+                        <input type="text" id="daybookActivity">
+                        <label for="daybookType">Type:</label>
+                        <select id="daybookType">
+                            <option value="">-- Select Type --</option>
+                            <option value="Income">Income</option>
+                            <option value="Expense">Expense</option>
+                            <option value="General">General</option>
+                        </select>
+                    </div>
+                    <div class="button-row">
+                        <button id="addDaybookEntry">Add Entry</button>
+                        <button id="updateDaybookEntry" style="display: none;">Update Entry</button>
+                        <button id="clearDaybookFormBtn">Clear Form</button>
+                    </div>
+                </div>
+                <div class="table-actions">
+                    <button id="printDaybookData">Print Data</button>
+                </div>
+                <div class="table-container">
+                    <table id="daybookTable">
+                        <thead>
+                            <tr>
+                                <th>Date (BS)</th>
+                                <th>Time</th>
+                                <th>Activity</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="settings-app" class="app-section">
+                <h2>Company Settings</h2>
+                <div class="form-container">
+                    <div class="input-row full-width">
+                        <label for="companyName">Company Name:</label>
+                        <input type="text" id="companyName" placeholder="Enter company name">
+                    </div>
+                    <div class="input-row full-width">
+                        <label for="companyAddress">Company Address:</label>
+                        <input type="text" id="companyAddress" placeholder="Enter company address">
+                    </div>
+                    <div class="input-row full-width">
+                        <label for="companyContact">Company Contact No:</label>
+                        <input type="text" id="companyContact" placeholder="Enter company contact number">
+                    </div>
+                    <div class="button-row">
+                        <button id="saveCompanyDetails">Save Details</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="customAlert" class="custom-alert-overlay" style="display: none;">
+        <div class="custom-alert-content">
+            <p id="customAlertMessage"></p>
+            <button id="customAlertCloseBtn">OK</button>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="nepalidate.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://nepalidatepicker.sajanmaharjan.com.np/nepali.datepicker.v3.7.min.js" type="text/javascript"></script>
+
     <script src="script.js"></script>
 </body>
 </html>
