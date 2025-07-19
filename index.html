@@ -4,16 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receipt Entry System</title>
-    <link rel="stylesheet" href="style.css"> </head>
-<body>
-    <script src="script.js"></script> </body>
-</html>
-<body>
     <link rel="stylesheet" href="style.css">
+</head>
+<body>
     <div class="container">
-        <h1>Receipt Entry System</h1>
+        <header>
+            <h1>Receipt Entry System</h1>
+            <div class="dashboard">
+                <div class="datetime">
+                    <span id="currentDate"></span> | <span id="currentTime"></span>
+                </div>
+                <div class="total-info">
+                    Total Entries: <span id="totalEntriesCount">0</span> | Total Amount: <span id="totalAmountSum">0.00</span>
+                </div>
+            </div>
+        </header>
 
         <div class="input-section">
+            <h2>Add/Edit Receipt Entry</h2>
+            <input type="hidden" id="editIndex"> <label for="receiptDate">Date:</label>
+            <input type="date" id="receiptDate">
+
             <label for="receiptNo">Receipt No.:</label>
             <input type="text" id="receiptNo" placeholder="e.g., R001">
 
@@ -27,9 +38,32 @@
             <input type="text" id="class" placeholder="e.g., Grade 5">
 
             <label for="category">Category:</label>
-            <input type="text" id="category" placeholder="e.g., Tuition">
+            <select id="category">
+                <option value="">-- Select Category --</option>
+                <option value="Tuition">Tuition</option>
+                <option value="Books">Books</option>
+                <option value="Fees">Fees</option>
+                <option value="Supplies">Supplies</option>
+                <option value="Other">Other</option>
+            </select>
+            <input type="text" id="newCategory" placeholder="Add New Category (Optional)">
+            <button id="addCategoryBtn">Add New Category</button>
 
-            <button id="addEntry">Add Entry</button>
+
+            <div class="form-actions">
+                <button id="addEntry">Add Entry</button>
+                <button id="updateEntry" style="display: none;">Update Entry</button>
+                <button id="clearFormBtn">Clear Form</button>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="settings-section">
+            <h2>Settings</h2>
+            <label for="companyName">Company Name for Print:</label>
+            <input type="text" id="companyName" placeholder="Your Company Name">
+            <button id="saveCompanyName">Save Company Name</button>
         </div>
 
         <hr>
@@ -47,6 +81,7 @@
             <table id="receiptTable">
                 <thead>
                     <tr>
+                        <th>Date</th>
                         <th>Receipt No.</th>
                         <th>Amount</th>
                         <th>Name</th>
@@ -62,6 +97,6 @@
         </div>
     </div>
 
-   <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
