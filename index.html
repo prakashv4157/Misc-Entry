@@ -47,8 +47,7 @@
                 <div class="finance-summary">
                     Income: <span id="totalIncome">0.00</span> | Expenses: <span id="totalExpenses">0.00</span> | Net Balance: <span id="netBalance">0.00</span>
                 </div>
-                <button id="logoutButton" class="logout-btn">Logout</button>
-            </div>
+                </div>
         </header>
 
         <nav class="main-nav">
@@ -56,8 +55,8 @@
             <button class="nav-button" data-target="finance-app" data-app-name="Finance">Finance</button>
             <button class="nav-button" data-target="visitors-app" data-app-name="Visitors">Visitors</button>
             <button class="nav-button" data-target="complains-app" data-app-name="Complains">Complains</button>
-            <button class="nav-button" data-target="settings-app" data-app-name="Settings">Settings</button>
-        </nav>
+            <button class="nav-button" data-target="shop-app" data-app-name="Shop">Shop</button> <button class="nav-button" data-target="settings-app" data-app-name="Settings">Settings</button>
+            <button id="logoutButton" class="logout-btn">Logout</button> </nav>
 
         <hr>
 
@@ -263,6 +262,128 @@
                         </tbody>
                 </table>
                 <button id="printComplainData">Print Complain Data</button>
+            </div>
+        </div>
+
+        <div id="shop-app" class="app-section">
+            <h2>Shop & Billing</h2>
+
+            <div class="shop-tabs">
+                <button class="shop-tab-button active" data-shop-target="product-management">Product Management</button>
+                <button class="shop-tab-button" data-shop-target="billing-interface">Billing Interface</button>
+            </div>
+
+            <div id="product-management" class="shop-tab-content active-shop-tab">
+                <div class="input-section shop-section">
+                    <h3>Add/Edit Product</h3>
+                    <input type="hidden" id="productEditId">
+                    <label for="productName">Product Name:</label>
+                    <input type="text" id="productName" placeholder="e.g., Notebook">
+
+                    <label for="productPrice">Price (NPR):</label>
+                    <input type="number" id="productPrice" step="0.01" placeholder="e.g., 50.00">
+
+                    <label for="productStock">Stock Quantity:</label>
+                    <input type="number" id="productStock" min="0" placeholder="e.g., 100">
+
+                    <label for="productCategory">Category:</label>
+                    <input type="text" id="productCategory" placeholder="e.g., Stationery, Electronics">
+
+                    <div class="form-actions">
+                        <button id="addProductBtn">Add Product</button>
+                        <button id="updateProductBtn" style="display: none;">Update Product</button>
+                        <button id="clearProductFormBtn">Clear Product Form</button>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="data-section">
+                    <h3>All Products</h3>
+                    <table id="productTable">
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Category</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                    <button id="printProductData">Print Product List</button>
+                </div>
+            </div>
+
+            <div id="billing-interface" class="shop-tab-content">
+                <div class="input-section shop-billing-section">
+                    <h3>Create New Bill</h3>
+                    <label for="billDate">Bill Date (AD):</label>
+                    <input type="date" id="billDate">
+
+                    <label for="customerName">Customer Name (Optional):</label>
+                    <input type="text" id="customerName" placeholder="e.g., Ram Sharma">
+
+                    <div class="product-selection">
+                        <label for="selectProduct">Add Product to Bill:</label>
+                        <select id="selectProduct">
+                            <option value="">-- Select Product --</option>
+                            </select>
+                        <label for="billingQuantity">Quantity:</label>
+                        <input type="number" id="billingQuantity" value="1" min="1">
+                        <button id="addProductToBillBtn">Add to Bill</button>
+                    </div>
+
+                    <hr>
+
+                    <h3>Bill Items</h3>
+                    <table id="billItemsTable">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Subtotal</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="text-align: right;"><strong>Total:</strong></td>
+                                <td id="billTotalAmount">0.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div class="form-actions">
+                        <button id="generateBillBtn">Generate Bill</button>
+                        <button id="clearBillFormBtn">Clear Bill</button>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="data-section">
+                    <h3>Recent Sales Bills</h3>
+                    <table id="salesTable">
+                        <thead>
+                            <tr>
+                                <th>Bill No.</th>
+                                <th>Date (BS)</th>
+                                <th>Customer</th>
+                                <th>Total Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                    <button id="printSalesData">Print Sales Data</button>
+                </div>
             </div>
         </div>
 
