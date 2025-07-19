@@ -13,7 +13,6 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = firebase.initializeApp(firebaseConfig);
-// const auth = app.auth(); // REMOVED: Firebase Auth is no longer used for login
 const db = app.firestore(); // Firestore database instance (still used for data storage)
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -32,10 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const authSection = document.getElementById('auth-section');
     const logoutButton = document.getElementById('logoutButton');
 
-    // --- Simplified Login DOM Elements ---
+    // --- Login DOM Elements ---
     const loginForm = document.getElementById('login-form');
-    const usernameInput = document.getElementById('usernameInput'); // Now just for show
-    const passwordInput = document.getElementById('passwordInput'); // Now just for show
+    const usernameInput = document.getElementById('usernameInput');
+    const passwordInput = document.getElementById('passwordInput');
     const simpleLoginButton = document.getElementById('simpleLoginButton');
 
     // --- Custom Alert DOM Elements ---
@@ -44,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const customAlertCloseBtn = document.getElementById('customAlertCloseBtn');
 
     // --- Data Storage (will now be loaded/saved from a single, non-user-specific Firestore collection) ---
-    // NO currentUser object as there's no Firebase Auth
     let receiptEntries = [];
     let financeTransactions = [];
     let visitors = [];
@@ -158,11 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Firestore Data Management (now using a single root collection for all data) ---
-    // All data will be stored under /global_data/{collectionName} or similar, as there's no user ID
     const getGlobalCollectionRef = (collectionName) => {
-        // We'll use a fixed 'global' document ID if we want all data under one user.
-        // For simplicity, we'll just store directly under the top-level collection,
-        // which means all users of this app would share the same data.
         return db.collection(collectionName);
     };
 
@@ -180,7 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Add all current data from the array to Firestore
             dataArray.forEach(item => {
-                // Use existing 'id' if available (for updates), otherwise let Firestore generate
                 const docRef = item.id ? collectionRef.doc(item.id) : collectionRef.doc();
                 batch.set(docRef, item);
             });
@@ -299,7 +292,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const editButton = document.createElement('button');
             editButton.textContent = 'Edit';
             editButton.classList.add('edit-btn');
-            // We pass the Firestore ID for actual deletion
             editButton.addEventListener('click', () => editReceiptEntry(entry));
             actionsCell.appendChild(editButton);
 
@@ -439,10 +431,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (date && receiptNo && !isNaN(amount) && name && classVal && category) {
             const newEntry = { date, receiptNo, amount, name, class: classVal, category };
             try {
-                const docRef = await getGlobalCollectionRef('receipts').add(newEntry); // Add to Firestore
-                receiptEntries.push({ id: docRef.id, ...newEntry }); // Add with Firestore ID
-                saveReceiptEntries(); // Re-sync all data (simple for demo)
-                applyFilter(); // Re-render table with new data
+                const docRef = await getGlobalCollectionRef('receipts').add(newEntry);
+                receiptEntries.push({ id: docRef.id, ...newEntry });
+                saveReceiptEntries();
+                applyFilter();
                 clearReceiptForm();
                 showAlert('Receipt entry added successfully!');
             } catch (error) {
@@ -461,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
         nameInput.value = entry.name;
         classInput.value = entry.class;
         categorySelect.value = entry.category;
-        editIndexHidden.value = entry.id; // Store Firestore ID for editing
+        editIndexHidden.value = entry.id;
 
         addEntryButton.style.display = 'none';
         updateEntryButton.style.display = 'inline-block';
@@ -483,14 +475,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (date && receiptNo && !isNaN(amount) && name && classVal && category) {
             const updatedEntry = { date, receiptNo, amount, name, class: classVal, category };
             try {
-                await getGlobalCollectionRef('receipts').doc(docIdToUpdate).update(updatedEntry); // Update in Firestore
-                // Update local array
+                await getGlobalCollectionRef('receipts').doc(docIdToUpdate).update(updatedEntry);
                 const indexInArray = receiptEntries.findIndex(e => e.id === docIdToUpdate);
                 if (indexInArray !== -1) {
                     receiptEntries[indexInArray] = { id: docIdToUpdate, ...updatedEntry };
                 }
-                saveReceiptEntries(); // Re-sync all data (simple for demo)
-                applyFilter(); // Re-render table with updated data
+                saveReceiptEntries();
+                applyFilter();
                 clearReceiptForm();
                 addEntryButton.style.display = 'inline-block';
                 updateEntryButton.style.display = 'none';
@@ -507,10 +498,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteReceiptEntry = async (docIdToDelete) => {
         if (confirm('Are you sure you want to delete this receipt entry?')) {
             try {
-                await getGlobalCollectionRef('receipts').doc(docIdToDelete).delete(); // Delete from Firestore
-                receiptEntries = receiptEntries.filter(entry => entry.id !== docIdToDelete); // Update local array
-                saveReceiptEntries(); // Re-sync all data
-                applyFilter(); // Re-render table
+                await getGlobalCollectionRef('receipts').doc(docIdToDelete).delete();
+                receiptEntries = receiptEntries.filter(entry => entry.id !== docIdToDelete);
+                saveReceiptEntries();
+                applyFilter();
                 clearReceiptForm();
                 addEntryButton.style.display = 'inline-block';
                 updateEntryButton.style.display = 'none';
@@ -981,17 +972,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- Simplified Login/Logout ---
-    // This function will simply "log in" the user by showing the main app
+    // --- Simple Login/Logout with Hardcoded Credentials (INSECURE FOR PRODUCTION) ---
     simpleLoginButton.addEventListener('click', async () => {
-        // In a real application, you would perform actual authentication here.
-        // For this simplified version, it always "succeeds".
-        // usernameInput.value = "Admin"; // No actual validation
-        // passwordInput.value = "Admin123"; // No actual validation
+        const username = usernameInput.value;
+        const password = passwordInput.value;
 
-        // Simulate a successful login
-        showAlert('Login successful! Welcome.');
-        loginStatusChange(true); // Simulate login state
+        // *** WARNING: THIS IS EXTREMELY INSECURE FOR ANY REAL APPLICATION ***
+        // Hardcoded credentials are visible to anyone inspecting the source code.
+        // This is for demonstration purposes only where security is NOT a concern.
+        if (username === 'Admin' && password === 'Admin123') {
+            showAlert('Login successful! Welcome.');
+            loginStatusChange(true); // Simulate login state
+        } else {
+            showAlert('Invalid username or password.');
+            usernameInput.value = '';
+            passwordInput.value = '';
+        }
     });
 
     logoutButton.addEventListener('click', () => {
