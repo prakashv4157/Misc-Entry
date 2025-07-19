@@ -12,7 +12,7 @@
             <h1>Receipt & Finance Tracker</h1>
             <div class="dashboard">
                 <div class="datetime">
-                    <span id="currentDate"></span> | <span id="currentTime"></span>
+                    <span id="currentDateAD"></span> | <span id="currentDateBS"></span> | <span id="currentTime"></span>
                 </div>
                 <div class="total-info">
                     Total Receipts: <span id="totalEntriesCount">0</span> | Receipt Amount: <span id="totalAmountSum">0.00</span>
@@ -23,67 +23,119 @@
             </div>
         </header>
 
-        <div class="input-section">
-            <h2>Add/Edit Receipt Entry</h2>
-            <input type="hidden" id="editIndex"> <label for="receiptDate">Date:</label>
-            <input type="date" id="receiptDate">
-
-            <label for="receiptNo">Receipt No.:</label>
-            <input type="text" id="receiptNo" placeholder="e.g., R001">
-
-            <label for="amount">Amount:</label>
-            <input type="number" id="amount" placeholder="e.g., 100.00">
-
-            <label for="name">Name:</label>
-            <input type="text" id="name" placeholder="e.g., John Doe">
-
-            <label for="class">Class:</label>
-            <input type="text" id="class" placeholder="e.g., Grade 5">
-
-            <label for="category">Category:</label>
-            <select id="category">
-                <option value="">-- Select Category --</option>
-                <option value="Tuition">Tuition</option>
-                <option value="Books">Books</option>
-                <option value="Fees">Fees</option>
-                <option value="Supplies">Supplies</option>
-                <option value="Other">Other</option>
-            </select>
-            <input type="text" id="newCategory" placeholder="Add New Category (Optional)">
-            <button id="addCategoryBtn">Add New Category</button>
-
-
-            <div class="form-actions">
-                <button id="addEntry">Add Receipt</button>
-                <button id="updateEntry" style="display: none;">Update Receipt</button>
-                <button id="clearFormBtn">Clear Receipt Form</button>
-            </div>
-        </div>
+        <nav class="main-nav">
+            <button class="nav-button active" data-target="receipts-app">Receipts</button>
+            <button class="nav-button" data-target="finance-app">Finance</button>
+        </nav>
 
         <hr>
 
-        <div class="input-section finance-section">
-            <h2>Add/Edit Income/Expense</h2>
-            <input type="hidden" id="financeEditIndex"> <label for="financeDate">Date:</label>
-            <input type="date" id="financeDate">
+        <div id="receipts-app" class="app-section active-app">
+            <div class="input-section">
+                <h2>Add/Edit Receipt Entry</h2>
+                <input type="hidden" id="editIndex">
+                <label for="receiptDate">Date (AD):</label>
+                <input type="date" id="receiptDate">
 
-            <label for="financeDescription">Description:</label>
-            <input type="text" id="financeDescription" placeholder="e.g., Salary, Groceries">
+                <label for="receiptNo">Receipt No.:</label>
+                <input type="text" id="receiptNo" placeholder="e.g., R001">
 
-            <label for="financeAmount">Amount:</label>
-            <input type="number" id="financeAmount" placeholder="e.g., 500.00">
+                <label for="amount">Amount:</label>
+                <input type="number" id="amount" placeholder="e.g., 100.00">
 
-            <label for="financeType">Type:</label>
-            <select id="financeType">
-                <option value="">-- Select Type --</option>
-                <option value="Income">Income</option>
-                <option value="Expense">Expense</option>
-            </select>
+                <label for="name">Name:</label>
+                <input type="text" id="name" placeholder="e.g., John Doe">
 
-            <div class="form-actions">
-                <button id="addFinanceEntry">Add Transaction</button>
-                <button id="updateFinanceEntry" style="display: none;">Update Transaction</button>
-                <button id="clearFinanceFormBtn">Clear Finance Form</button>
+                <label for="class">Class:</label>
+                <input type="text" id="class" placeholder="e.g., Grade 5">
+
+                <label for="category">Category:</label>
+                <select id="category">
+                    <option value="">-- Select Category --</option>
+                    <option value="Tuition">Tuition</option>
+                    <option value="Books">Books</option>
+                    <option value="Fees">Fees</option>
+                    <option value="Supplies">Supplies</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="text" id="newCategory" placeholder="Add New Category (Optional)">
+                <button id="addCategoryBtn">Add New Category</button>
+
+                <div class="form-actions">
+                    <button id="addEntry">Add Receipt</button>
+                    <button id="updateEntry" style="display: none;">Update Receipt</button>
+                    <button id="clearFormBtn">Clear Receipt Form</button>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="data-section">
+                <h2>All Receipt Entries</h2>
+                <table id="receiptTable">
+                    <thead>
+                        <tr>
+                            <th>Date (BS)</th>
+                            <th>Receipt No.</th>
+                            <th>Amount</th>
+                            <th>Name</th>
+                            <th>Class</th>
+                            <th>Category</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+                <button id="printReceiptData">Print Receipt Data</button>
+            </div>
+        </div>
+
+        <div id="finance-app" class="app-section">
+            <div class="input-section finance-section">
+                <h2>Add/Edit Income/Expense</h2>
+                <input type="hidden" id="financeEditIndex">
+                <label for="financeDate">Date (AD):</label>
+                <input type="date" id="financeDate">
+
+                <label for="financeDescription">Description:</label>
+                <input type="text" id="financeDescription" placeholder="e.g., Salary, Groceries">
+
+                <label for="financeAmount">Amount:</label>
+                <input type="number" id="financeAmount" placeholder="e.g., 500.00">
+
+                <label for="financeType">Type:</label>
+                <select id="financeType">
+                    <option value="">-- Select Type --</option>
+                    <option value="Income">Income</option>
+                    <option value="Expense">Expense</option>
+                </select>
+
+                <div class="form-actions">
+                    <button id="addFinanceEntry">Add Transaction</button>
+                    <button id="updateFinanceEntry" style="display: none;">Update Transaction</button>
+                    <button id="clearFinanceFormBtn">Clear Finance Form</button>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="data-section">
+                <h2>All Income/Expense Transactions</h2>
+                <table id="financeTable">
+                    <thead>
+                        <tr>
+                            <th>Date (BS)</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+                <button id="printFinanceData">Print Finance Data</button>
             </div>
         </div>
 
@@ -99,54 +151,13 @@
         <hr>
 
         <div class="filter-section">
-            <h2>Filter Entries</h2>
+            <h2>Filter Entries (Both Sections)</h2>
             <input type="text" id="filterInput" placeholder="Filter by any field...">
             <button id="clearFilter">Clear Filter</button>
         </div>
-
-        <hr>
-
-        <div class="data-section">
-            <h2>All Receipt Entries</h2>
-            <table id="receiptTable">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Receipt No.</th>
-                        <th>Amount</th>
-                        <th>Name</th>
-                        <th>Class</th>
-                        <th>Category</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    </tbody>
-            </table>
-            <button id="printReceiptData">Print Receipt Data</button>
-        </div>
-
-        <hr>
-
-        <div class="data-section">
-            <h2>All Income/Expense Transactions</h2>
-            <table id="financeTable">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Description</th>
-                        <th>Amount</th>
-                        <th>Type</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    </tbody>
-            </table>
-            <button id="printFinanceData">Print Finance Data</button>
-        </div>
     </div>
 
+    <script src="nepalidate.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
