@@ -27,16 +27,24 @@ header {
 
 h1 {
     color: #2c3e50;
-    margin-bottom: 10px;
+    margin-bottom: 5px; /* Reduced margin */
     font-size: 2.5em;
     font-weight: 600;
 }
 
-h2 {
+h2#currentAppName { /* Specific ID for the app name h2 */
+    color: #4a69bd;
+    margin-top: 5px; /* Added margin */
+    margin-bottom: 25px;
+    font-size: 1.8em;
+    font-weight: 500;
+}
+
+h3 { /* For sub-headers within app sections */
     color: #4a69bd;
     text-align: center;
     margin-bottom: 25px;
-    font-size: 1.8em;
+    font-size: 1.5em;
     font-weight: 500;
 }
 
@@ -73,13 +81,14 @@ h2 {
     margin-bottom: 30px;
     background-color: #4a69bd;
     border-radius: 8px;
-    overflow: hidden; /* Ensures buttons don't overflow rounded corners */
+    overflow: hidden;
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
 }
 
 .nav-button {
-    flex-grow: 1; /* Makes buttons take equal width */
-    padding: 15px 20px;
-    font-size: 1.2em;
+    flex-grow: 1;
+    padding: 15px 10px; /* Reduced horizontal padding for more buttons */
+    font-size: 1.1em; /* Slightly smaller font for more buttons */
     font-weight: bold;
     color: #fff;
     background-color: #4a69bd;
@@ -122,9 +131,20 @@ h2 {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
+/* Specific styling for new sections */
 .finance-section {
     border-color: #a2d2ff;
     background-color: #e0f2ff;
+}
+
+.visitor-section {
+    border-color: #c3e6cb; /* Light green */
+    background-color: #f0fdf4;
+}
+
+.complain-section {
+    border-color: #f5c6cb; /* Light red */
+    background-color: #fff0f3;
 }
 
 label {
@@ -137,7 +157,9 @@ label {
 input[type="text"],
 input[type="number"],
 input[type="date"],
-select {
+input[type="time"], /* Added time input */
+select,
+textarea { /* Added textarea */
     width: calc(100% - 22px);
     padding: 12px;
     margin-bottom: 18px;
@@ -151,10 +173,17 @@ select {
 input[type="text"]:focus,
 input[type="number"]:focus,
 input[type="date"]:focus,
-select:focus {
+input[type="time"]:focus,
+select:focus,
+textarea:focus {
     border-color: #4a69bd;
     box-shadow: 0 0 0 3px rgba(74, 105, 189, 0.2);
     outline: none;
+}
+
+textarea {
+    resize: vertical; /* Allow vertical resizing */
+    min-height: 80px;
 }
 
 #newCategory {
@@ -203,65 +232,42 @@ button:active {
 }
 
 /* Receipt Buttons */
-#addEntry {
-    background-color: #28a745;
-}
-#addEntry:hover {
-    background-color: #218838;
-}
-
-#updateEntry {
-    background-color: #ffc107;
-    color: #333;
-}
-#updateEntry:hover {
-    background-color: #e0a800;
-}
-
-#clearFormBtn {
-    background-color: #6c757d;
-}
-#clearFormBtn:hover {
-    background-color: #5a6268;
-}
+#addEntry { background-color: #28a745; }
+#addEntry:hover { background-color: #218838; }
+#updateEntry { background-color: #ffc107; color: #333; }
+#updateEntry:hover { background-color: #e0a800; }
+#clearFormBtn { background-color: #6c757d; }
+#clearFormBtn:hover { background-color: #5a6268; }
 
 /* Finance Buttons */
-#addFinanceEntry {
-    background-color: #17a2b8;
-}
-#addFinanceEntry:hover {
-    background-color: #138496;
-}
+#addFinanceEntry { background-color: #17a2b8; }
+#addFinanceEntry:hover { background-color: #138496; }
+#updateFinanceEntry { background-color: #fd7e14; }
+#updateFinanceEntry:hover { background-color: #e66b00; }
+#clearFinanceFormBtn { background-color: #6c757d; }
 
-#updateFinanceEntry {
-    background-color: #fd7e14;
-}
-#updateFinanceEntry:hover {
-    background-color: #e66b00;
-}
+/* Visitors Buttons */
+#addVisitorEntry { background-color: #20c997; } /* Teal */
+#addVisitorEntry:hover { background-color: #199c75; }
+#updateVisitorEntry { background-color: #6610f2; } /* Indigo */
+#updateVisitorEntry:hover { background-color: #510dc4; }
+#clearVisitorFormBtn { background-color: #6c757d; }
 
-#clearFinanceFormBtn {
-    background-color: #6c757d;
-}
-#clearFinanceFormBtn:hover {
-    background-color: #5a6268;
-}
+/* Complains Buttons */
+#addComplainEntry { background-color: #dc3545; } /* Red */
+#addComplainEntry:hover { background-color: #c82333; }
+#updateComplainEntry { background-color: #6f42c1; } /* Purple */
+#updateComplainEntry:hover { background-color: #5e37a0; }
+#clearComplainFormBtn { background-color: #6c757d; }
 
-#saveCompanyName {
-    background-color: #17a2b8;
-}
-#saveCompanyName:hover {
-    background-color: #138496;
-}
+/* General Action Buttons */
+#saveCompanyName { background-color: #17a2b8; }
+#saveCompanyName:hover { background-color: #138496; }
+#clearFilter { background-color: #6c757d; }
+#clearFilter:hover { background-color: #5a6268; }
 
-#clearFilter {
-    background-color: #6c757d;
-}
-#clearFilter:hover {
-    background-color: #5a6268;
-}
-
-#printReceiptData, #printFinanceData {
+/* Print Buttons */
+#printReceiptData, #printFinanceData, #printVisitorData, #printComplainData {
     background-color: #6f42c1;
     margin-top: 20px;
     display: block;
@@ -269,7 +275,7 @@ button:active {
     margin-right: auto;
 }
 
-#printReceiptData:hover, #printFinanceData:hover {
+#printReceiptData:hover, #printFinanceData:hover, #printVisitorData:hover, #printComplainData:hover {
     background-color: #5e37a0;
 }
 
@@ -352,14 +358,23 @@ hr {
         max-width: 100%;
         width: 100%;
     }
-    .input-section, .filter-section, .settings-section, button, .dashboard, .main-nav, hr {
+    .input-section, .filter-section, .settings-section, button, .dashboard, .main-nav, hr, h1, h2#currentAppName {
         display: none; /* Hide non-essential elements for print */
     }
-    h1 {
+    .print-company-title {
         text-align: center;
-        margin-bottom: 20px;
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 15px;
         color: #000;
-        font-size: 2em;
+        display: block !important; /* Force display for print */
+    }
+    h3 {
+        text-align: center;
+        margin-bottom: 15px;
+        color: #000;
+        font-size: 1.5em;
+        display: block !important;
     }
     .data-section {
         margin: 0;
@@ -381,22 +396,26 @@ hr {
     table th {
         background-color: #e9e9e9;
     }
-    .print-company-title {
-        text-align: center;
-        font-size: 1.5em;
-        font-weight: bold;
-        margin-bottom: 15px;
-        color: #000;
-    }
 
     /* Ensure only the active app section prints, or if not active, then print all data sections without nav/input */
     .app-section {
         display: block !important; /* Override display:none for printing */
+        page-break-after: always; /* Start new page for each app section when printing all */
     }
-    .app-section:not(.active-app) .input-section {
+    .app-section:last-child {
+        page-break-after: auto;
+    }
+    .app-section .input-section {
+        display: none !important; /* Always hide input sections for print */
+    }
+    .app-section .data-section h3 {
+        margin-top: 30px; /* Add space between data sections if multiple are printing */
+    }
+}
+
+/* Hide print buttons when printing the whole document */
+@media print {
+    #printReceiptData, #printFinanceData, #printVisitorData, #printComplainData {
         display: none !important;
-    }
-    .app-section:not(.active-app) .data-section h2 {
-        margin-top: 30px; /* Add space between sections if multiple are printing */
     }
 }
