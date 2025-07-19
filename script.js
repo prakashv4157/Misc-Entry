@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginEmailInput = document.getElementById('loginEmail');
     const loginPasswordInput = document.getElementById('loginPassword');
     const loginButton = document.getElementById('loginButton');
-    const googleLoginButton = document.getElementById('googleLoginButton'); // New Google button
+    // const googleLoginButton = document.getElementById('googleLoginButton'); // REMOVED: Google button
 
     const registerEmailInput = document.getElementById('registerEmail');
     const registerPasswordInput = document.getElementById('registerPassword');
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveComplains = () => saveDataToFirestore('complains', complains);
 
     // Categories and Company Name are global in this version (saved to localStorage)
-    // To make them user-specific in Firestore, you'd need separate Firestore logic for them.
+    // To make them user-specific and saved to Firestore, you'd need separate Firestore logic for them.
     const saveCategories = () => {
         localStorage.setItem('receiptCategories', JSON.stringify(categories));
     };
@@ -1041,16 +1041,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    googleLoginButton.addEventListener('click', async () => {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        try {
-            await auth.signInWithPopup(provider);
-            // onAuthStateChanged will handle UI update
-        } catch (error) {
-            console.error("Google login error:", error);
-            showAlert(`Google login failed: ${error.message}`);
-        }
-    });
+    // REMOVED: Google Login Button Event Listener
+    // googleLoginButton.addEventListener('click', async () => {
+    //     const provider = new firebase.auth.GoogleAuthProvider();
+    //     try {
+    //         await auth.signInWithPopup(provider);
+    //         // onAuthStateChanged will handle UI update
+    //     } catch (error) {
+    //         console.error("Google login error:", error);
+    //         showAlert(`Google login failed: ${error.message}`);
+    //     }
+    // });
 
     registerButton.addEventListener('click', async () => {
         const email = registerEmailInput.value.trim();
