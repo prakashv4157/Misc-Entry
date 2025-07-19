@@ -2,16 +2,17 @@
 // IMPORTANT: Replace with your actual Firebase project configuration!
 // You get this from your Firebase project settings -> "Add app" -> "Web"
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY", // <--- REPLACE THIS
-    authDomain: "YOUR_AUTH_DOMAIN", // <--- REPLACE THIS
-    projectId: "YOUR_PROJECT_ID", // <--- REPLACE THIS
-    storageBucket: "YOUR_STORAGE_BUCKET", // <--- REPLACE THIS
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // <--- REPLACE THIS
-    appId: "YOUR_APP_ID", // <--- REPLACE THIS
+    apiKey: "YOUR_API_KEY", // <--- REPLACE THIS WITH YOUR REAL API KEY
+    authDomain: "YOUR_AUTH_DOMAIN", // <--- REPLACE THIS WITH YOUR REAL AUTH DOMAIN
+    projectId: "YOUR_PROJECT_ID", // <--- REPLACE THIS WITH YOUR REAL PROJECT ID
+    storageBucket: "YOUR_STORAGE_BUCKET", // <--- REPLACE THIS WITH YOUR REAL STORAGE BUCKET
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // <--- REPLACE THIS WITH YOUR REAL SENDER ID
+    appId: "YOUR_APP_ID", // <--- REPLACE THIS WITH YOUR REAL APP ID
     // measurementId: "YOUR_MEASUREMENT_ID" // Optional, <--- REPLACE THIS if you use Analytics
 };
 
 // Initialize Firebase
+// This line MUST execute successfully for everything else to work.
 const app = firebase.initializeApp(firebaseConfig);
 const db = app.firestore(); // Firestore database instance (still used for data storage)
 
@@ -194,9 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveDataToFirestore = async (collectionName, dataArray) => {
         const collectionRef = getGlobalCollectionRef(collectionName);
         try {
-            // Firestore transactions or batched writes are better for larger sets,
-            // but for a small demo, a simple delete-all-then-add-all approach is feasible.
-            // For production, consider using arrayUnion/arrayRemove or managing individual documents.
+            // For a simple demo, we're replacing the entire collection.
+            // For production, consider using arrayUnion/arrayRemove or managing individual documents
+            // more granularly to avoid excessive writes and reads, especially for large datasets.
 
             // Fetch all existing documents in the collection
             const snapshot = await collectionRef.get();
@@ -540,8 +541,6 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const docRef = await getGlobalCollectionRef('receipts').add(newEntry); // Add to Firestore
                 receiptEntries.push({ id: docRef.id, ...newEntry }); // Add with Firestore ID
-                // Instead of re-saving entire collection, we now update the local array
-                // and then just render. The save logic is more on app load/logout/specific saves.
                 applyFilter(); // Re-render table with new data
                 clearReceiptForm();
                 showAlert('Receipt entry added successfully!');
@@ -1246,38 +1245,47 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Logged in to simple system.");
 
             // Load all data from Firestore (now from global collections)
-            receiptEntries = await loadDataFromFirestore('receipts');
-            financeTransactions = await loadDataFromFirestore('finance');
-            visitors = await loadDataFromFirestore('visitors');
-            complains = await loadDataFromFirestore('complains');
-            daybookEntries = await loadDataFromFirestore('daybook'); // New
-            loadCategories();
-            loadCompanyDetails(); // New
+            // Wrap in a try-catch to handle potential Firestore loading errors gracefully
+            try {
+                receiptEntries = await loadDataFromFirestore('receipts');
+                financeTransactions = await loadDataFromFirestore('finance');
+                visitors = await loadDataFromFirestore('visitors');
+                complains = await loadDataFromFirestore('complains');
+                daybookEntries = await loadDataFromFirestore('daybook'); // New
+                loadCategories();
+                loadCompanyDetails(); // New
 
-            // Render tables with loaded data
-            renderReceiptTable(receiptEntries);
-            renderFinanceTable(financeTransactions);
-            renderVisitorTable(visitors);
-            renderComplainTable(complains);
-            renderDaybookTable(daybookEntries); // New
+                // Render tables with loaded data
+                renderReceiptTable(receiptEntries);
+                renderFinanceTable(financeTransactions);
+                renderVisitorTable(visitors);
+                renderComplainTable(complains);
+                renderDaybookTable(daybookEntries); // New
 
-            updateDashboardMetrics();
+                updateDashboardMetrics();
 
-            // Set initial active application (Receipts by default) and update H2
-            document.querySelectorAll('.app-section').forEach(section => section.classList.remove('active-app'));
-            document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
-            receiptsAppSection.classList.add('active-app');
-            document.querySelector('.nav-button[data-target="receipts-app"]').classList.add('active');
-            currentAppName.textContent = document.querySelector('.nav-button.active').dataset.appName;
+                // Set initial active application (Receipts by default) and update H2
+                document.querySelectorAll('.app-section').forEach(section => section.classList.remove('active-app'));
+                document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+                receiptsAppSection.classList.add('active-app');
+                document.querySelector('.nav-button[data-target="receipts-app"]').classList.add('active');
+                currentAppName.textContent = document.querySelector('.nav-button.active').dataset.appName;
 
-            // Clear all forms
-            clearReceiptForm();
-            clearFinanceForm();
-            clearVisitorForm();
-            clearComplainForm();
-            clearDaybookForm(); // New
+                // Clear all forms
+                clearReceiptForm();
+                clearFinanceForm();
+                clearVisitorForm();
+                clearComplainForm();
+                clearDaybookForm(); // New
 
-            applyFilter(); // Apply initial filter (which is usually empty, showing all)
+                applyFilter(); // Apply initial filter (which is usually empty, showing all)
+            } catch (error) {
+                console.error("Error during data loading after login:", error);
+                showAlert(`Error loading data: ${error.message}. Please check console for details.`);
+                // If data loading fails, it might be better to revert to login or show a critical error.
+                // For now, we'll just show an alert and keep the UI visible.
+            }
+
         } else {
             // Only set auth section display to flex and main app to none if we are actually logging out
             if (authSection.style.display === 'none' || mainAppContainer.style.display === 'block') {
@@ -1327,19 +1335,13 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
-        // Crucial fix: Don't call loginStatusChange(false) here,
-        // as it will immediately log out after a successful login.
-        // The auth section is initially displayed via HTML's default state.
-        // We only change it when login button is clicked.
-
         // Ensure the auth section is visible by default (CSS handles this, but explicit might help)
         authSection.style.display = 'flex';
         mainAppContainer.style.display = 'none';
 
-        // Load company details and categories only when the app is initialized (i.e., after login)
-        // or ensure they are loaded globally if needed before login
-        loadCategories(); // Categories can be loaded always as they are global config
-        loadCompanyDetails(); // Company details can be loaded always as they are global config
+        // Load company details and categories globally, as they are part of the initial UI
+        loadCategories();
+        loadCompanyDetails();
     };
 
     initializeApp();
