@@ -23,24 +23,25 @@ body {
 header {
     text-align: center;
     margin-bottom: 30px;
+    position: relative; /* For logout button positioning */
 }
 
 h1 {
     color: #2c3e50;
-    margin-bottom: 5px; /* Reduced margin */
+    margin-bottom: 5px;
     font-size: 2.5em;
     font-weight: 600;
 }
 
-h2#currentAppName { /* Specific ID for the app name h2 */
+h2#currentAppName {
     color: #4a69bd;
-    margin-top: 5px; /* Added margin */
+    margin-top: 5px;
     margin-bottom: 25px;
     font-size: 1.8em;
     font-weight: 500;
 }
 
-h3 { /* For sub-headers within app sections */
+h3 {
     color: #4a69bd;
     text-align: center;
     margin-bottom: 25px;
@@ -74,6 +75,19 @@ h3 { /* For sub-headers within app sections */
     margin: 0 5px;
 }
 
+.logout-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #dc3545;
+    padding: 8px 15px;
+    font-size: 0.9em;
+}
+
+.logout-btn:hover {
+    background-color: #c82333;
+}
+
 /* Navigation Bar Styles */
 .main-nav {
     display: flex;
@@ -82,13 +96,13 @@ h3 { /* For sub-headers within app sections */
     background-color: #4a69bd;
     border-radius: 8px;
     overflow: hidden;
-    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    flex-wrap: wrap;
 }
 
 .nav-button {
     flex-grow: 1;
-    padding: 15px 10px; /* Reduced horizontal padding for more buttons */
-    font-size: 1.1em; /* Slightly smaller font for more buttons */
+    padding: 15px 10px;
+    font-size: 1.1em;
     font-weight: bold;
     color: #fff;
     background-color: #4a69bd;
@@ -114,11 +128,11 @@ h3 { /* For sub-headers within app sections */
 
 /* Application Sections */
 .app-section {
-    display: none; /* Hidden by default */
+    display: none;
 }
 
 .app-section.active-app {
-    display: block; /* Shown when active */
+    display: block;
 }
 
 
@@ -138,12 +152,12 @@ h3 { /* For sub-headers within app sections */
 }
 
 .visitor-section {
-    border-color: #c3e6cb; /* Light green */
+    border-color: #c3e6cb;
     background-color: #f0fdf4;
 }
 
 .complain-section {
-    border-color: #f5c6cb; /* Light red */
+    border-color: #f5c6cb;
     background-color: #fff0f3;
 }
 
@@ -157,9 +171,9 @@ label {
 input[type="text"],
 input[type="number"],
 input[type="date"],
-input[type="time"], /* Added time input */
+input[type="time"],
 select,
-textarea { /* Added textarea */
+textarea {
     width: calc(100% - 22px);
     padding: 12px;
     margin-bottom: 18px;
@@ -182,7 +196,7 @@ textarea:focus {
 }
 
 textarea {
-    resize: vertical; /* Allow vertical resizing */
+    resize: vertical;
     min-height: 80px;
 }
 
@@ -247,16 +261,16 @@ button:active {
 #clearFinanceFormBtn { background-color: #6c757d; }
 
 /* Visitors Buttons */
-#addVisitorEntry { background-color: #20c997; } /* Teal */
+#addVisitorEntry { background-color: #20c997; }
 #addVisitorEntry:hover { background-color: #199c75; }
-#updateVisitorEntry { background-color: #6610f2; } /* Indigo */
+#updateVisitorEntry { background-color: #6610f2; }
 #updateVisitorEntry:hover { background-color: #510dc4; }
 #clearVisitorFormBtn { background-color: #6c757d; }
 
 /* Complains Buttons */
-#addComplainEntry { background-color: #dc3545; } /* Red */
+#addComplainEntry { background-color: #dc3545; }
 #addComplainEntry:hover { background-color: #c82333; }
-#updateComplainEntry { background-color: #6f42c1; } /* Purple */
+#updateComplainEntry { background-color: #6f42c1; }
 #updateComplainEntry:hover { background-color: #5e37a0; }
 #clearComplainFormBtn { background-color: #6c757d; }
 
@@ -359,7 +373,7 @@ hr {
         width: 100%;
     }
     .input-section, .filter-section, .settings-section, button, .dashboard, .main-nav, hr, h1, h2#currentAppName {
-        display: none; /* Hide non-essential elements for print */
+        display: none;
     }
     .print-company-title {
         text-align: center;
@@ -367,7 +381,7 @@ hr {
         font-weight: bold;
         margin-bottom: 15px;
         color: #000;
-        display: block !important; /* Force display for print */
+        display: block !important;
     }
     h3 {
         text-align: center;
@@ -397,19 +411,18 @@ hr {
         background-color: #e9e9e9;
     }
 
-    /* Ensure only the active app section prints, or if not active, then print all data sections without nav/input */
     .app-section {
-        display: block !important; /* Override display:none for printing */
-        page-break-after: always; /* Start new page for each app section when printing all */
+        display: block !important;
+        page-break-after: always;
     }
     .app-section:last-child {
         page-break-after: auto;
     }
     .app-section .input-section {
-        display: none !important; /* Always hide input sections for print */
+        display: none !important;
     }
     .app-section .data-section h3 {
-        margin-top: 30px; /* Add space between data sections if multiple are printing */
+        margin-top: 30px;
     }
 }
 
@@ -418,4 +431,113 @@ hr {
     #printReceiptData, #printFinanceData, #printVisitorData, #printComplainData {
         display: none !important;
     }
+}
+
+/* Login Section Styles */
+.login-container {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-sizing: border-box;
+    margin-top: 100px; /* Center vertically */
+}
+
+.login-container h2 {
+    color: #2c3e50;
+    margin-bottom: 30px;
+    font-size: 2em;
+}
+
+.login-container .input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.login-container label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+}
+
+.login-container input[type="text"],
+.login-container input[type="password"] {
+    width: calc(100% - 22px);
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1em;
+}
+
+.login-container button {
+    width: 100%;
+    padding: 15px;
+    background-color: #4a69bd;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.2em;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.login-container button:hover {
+    background-color: #3b5a9a;
+}
+
+.login-note {
+    margin-top: 20px;
+    font-size: 0.9em;
+    color: #777;
+}
+
+/* Custom Alert Box Styles */
+.custom-alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.custom-alert-box {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    max-width: 350px;
+    width: 90%;
+}
+
+.custom-alert-box p {
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.custom-alert-box button {
+    background-color: #4a69bd;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+}
+
+.custom-alert-box button:hover {
+    background-color: #3b5a9a;
 }
