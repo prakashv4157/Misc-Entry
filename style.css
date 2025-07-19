@@ -1,118 +1,249 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #eef1f5;
     margin: 0;
-    padding: 20px;
+    padding: 30px;
     display: flex;
     justify-content: center;
     align-items: flex-start;
     min-height: 100vh;
+    color: #333;
 }
 
 .container {
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    padding: 35px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 900px;
+    max-width: 950px;
+    box-sizing: border-box;
 }
 
-h1, h2 {
-    color: #333;
+header {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 
-.input-section, .filter-section, .data-section {
+h1 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 2.5em;
+    font-weight: 600;
+}
+
+h2 {
+    color: #4a69bd;
+    text-align: center;
     margin-bottom: 25px;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #fafafa;
+    font-size: 1.8em;
+    font-weight: 500;
 }
 
-.input-section label {
+.dashboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f0f4f8;
+    padding: 15px 25px;
+    border-radius: 8px;
+    margin-top: 20px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap; /* Allows items to wrap on smaller screens */
+    gap: 10px; /* Space between dashboard items */
+}
+
+.datetime, .total-info { /* Changed .total-entries to .total-info */
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #555;
+}
+
+.input-section, .filter-section, .data-section, .settings-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 1px solid #dcdfe6;
+    border-radius: 8px;
+    background-color: #fdfdff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+label {
     display: block;
     margin-bottom: 8px;
     font-weight: bold;
     color: #555;
 }
 
-.input-section input[type="text"],
-.input-section input[type="number"],
-.filter-section input[type="text"] {
-    width: calc(100% - 20px);
-    padding: 10px;
-    margin-bottom: 15px;
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+    width: calc(100% - 22px); /* Account for padding and border */
+    padding: 12px;
+    margin-bottom: 18px;
     border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box; /* Include padding in width */
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+select:focus {
+    border-color: #4a69bd;
+    box-shadow: 0 0 0 3px rgba(74, 105, 189, 0.2);
+    outline: none;
+}
+
+#newCategory {
+    width: calc(100% - 22px - 140px); /* Adjust for button width */
+    display: inline-block;
+    margin-right: 10px;
+}
+
+#addCategoryBtn {
+    vertical-align: top;
+    margin-bottom: 18px;
+    background-color: #5cb85c;
+}
+
+#addCategoryBtn:hover {
+    background-color: #4cae4c;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
 }
 
 button {
     background-color: #007bff;
     color: white;
-    padding: 10px 18px;
+    padding: 12px 22px;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.2s ease;
-    margin-right: 10px; /* Space between buttons */
+    font-size: 1.05em;
+    font-weight: 500;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    flex-shrink: 0; /* Prevent buttons from shrinking */
 }
 
 button:hover {
     background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+#addEntry {
+    background-color: #28a745;
+}
+#addEntry:hover {
+    background-color: #218838;
+}
+
+#updateEntry {
+    background-color: #ffc107;
+    color: #333;
+}
+#updateEntry:hover {
+    background-color: #e0a800;
+}
+
+#clearFormBtn {
+    background-color: #6c757d;
+}
+#clearFormBtn:hover {
+    background-color: #5a6268;
+}
+
+#saveCompanyName {
+    background-color: #17a2b8;
+}
+#saveCompanyName:hover {
+    background-color: #138496;
 }
 
 #clearFilter {
     background-color: #6c757d;
 }
-
 #clearFilter:hover {
     background-color: #5a6268;
 }
 
 #printData {
-    background-color: #28a745;
-    margin-top: 15px;
+    background-color: #6f42c1; /* A nice purple for print */
+    margin-top: 20px;
+    display: block; /* Make it a block element to center easily */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #printData:hover {
-    background-color: #218838;
+    background-color: #5e37a0;
 }
+
 
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
+    margin-top: 25px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    overflow: hidden; /* Ensures rounded corners on table */
 }
 
 table th, table td {
-    border: 1px solid #ddd;
-    padding: 10px;
+    border: 1px solid #e0e0e0;
+    padding: 12px 15px;
     text-align: left;
+    vertical-align: middle;
 }
 
 table th {
-    background-color: #e9e9e9;
+    background-color: #e9eff5;
     font-weight: bold;
     color: #333;
+    position: sticky; /* Make header sticky for scrolling tables */
+    top: 0;
+    z-index: 1;
 }
 
 table tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
+    background-color: #f7f9fc;
 }
 
 table tbody tr:hover {
-    background-color: #f1f1f1;
+    background-color: #eef1f5;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.edit-btn {
+    background-color: #007bff;
+    padding: 8px 12px;
+    font-size: 0.9em;
+}
+
+.edit-btn:hover {
+    background-color: #0056b3;
 }
 
 .delete-btn {
     background-color: #dc3545;
-    padding: 5px 10px;
-    font-size: 14px;
+    padding: 8px 12px;
+    font-size: 0.9em;
 }
 
 .delete-btn:hover {
@@ -122,6 +253,58 @@ table tbody tr:hover {
 hr {
     border: 0;
     height: 1px;
-    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
-    margin: 30px 0;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0));
+    margin: 40px 0;
+}
+
+/* Print specific styles */
+@media print {
+    body {
+        background-color: #fff;
+        padding: 0;
+        margin: 0;
+    }
+    .container {
+        box-shadow: none;
+        border-radius: 0;
+        padding: 0;
+        max-width: 100%;
+        width: 100%;
+    }
+    .input-section, .filter-section, .settings-section, button, .dashboard {
+        display: none; /* Hide non-essential elements for print */
+    }
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #000;
+        font-size: 2em;
+    }
+    .data-section {
+        margin: 0;
+        padding: 0;
+        border: none;
+        box-shadow: none;
+        background-color: #fff;
+    }
+    table {
+        margin-top: 0;
+        box-shadow: none;
+        border-radius: 0;
+    }
+    table th, table td {
+        border: 1px solid #aaa;
+        padding: 8px;
+        color: #000;
+    }
+    table th {
+        background-color: #e9e9e9;
+    }
+    .print-company-title {
+        text-align: center;
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #000;
+    }
 }
