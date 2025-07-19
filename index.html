@@ -19,24 +19,28 @@
             <h2>Login to System</h2>
             <div class="input-group">
                 <label for="usernameInput">Username:</label>
-                <input type="text" id="usernameInput" placeholder="Enter username">
+                <input type="text" id="usernameInput" placeholder="Enter username" value="Admin">
             </div>
             <div class="input-group">
                 <label for="passwordInput">Password:</label>
-                <input type="password" id="passwordInput" placeholder="Enter password">
+                <input type="password" id="passwordInput" placeholder="Enter password" value="Admin123">
             </div>
             <button id="simpleLoginButton">Login</button>
-            <p class="auth-link" style="color: #c8e6c9;">
-                Note: This login is for demonstration only and has hardcoded credentials.
+            <p class="auth-link" style="color: #c8e6c9; font-size: 0.85em; margin-top: 15px;">
+                Note: This login is for demonstration only and has hardcoded credentials (Admin/Admin123).
                 <br>
                 **DO NOT USE FOR REAL APPLICATIONS!**
             </p>
         </div>
-    </div>
+        </div>
 
     <div id="main-app-container" class="container" style="display: none;">
         <header>
             <h1><span id="displayCompanyName">Your Company Name</span></h1>
+            <div class="company-details">
+                <p>Address: <span id="displayCompanyAddress">Your Company Address</span></p>
+                <p>Contact: <span id="displayCompanyContact">Your Company Contact No</span></p>
+            </div>
             <h2 id="currentAppName">Receipts</h2> <div class="dashboard">
                 <div class="datetime">
                     <span id="currentDateAD"></span> | <span id="currentDateBS"></span> | <span id="currentTime"></span>
@@ -47,7 +51,8 @@
                 <div class="finance-summary">
                     Income: <span id="totalIncome">0.00</span> | Expenses: <span id="totalExpenses">0.00</span> | Net Balance: <span id="netBalance">0.00</span>
                 </div>
-                </div>
+                <button id="logoutButton" class="logout-btn">Logout</button>
+            </div>
         </header>
 
         <nav class="main-nav">
@@ -55,8 +60,9 @@
             <button class="nav-button" data-target="finance-app" data-app-name="Finance">Finance</button>
             <button class="nav-button" data-target="visitors-app" data-app-name="Visitors">Visitors</button>
             <button class="nav-button" data-target="complains-app" data-app-name="Complains">Complains</button>
-            <button class="nav-button" data-target="shop-app" data-app-name="Shop">Shop</button> <button class="nav-button" data-target="settings-app" data-app-name="Settings">Settings</button>
-            <button id="logoutButton" class="logout-btn">Logout</button> </nav>
+            <button class="nav-button" data-target="daybook-app" data-app-name="Daybook">Daybook</button>
+            <button class="nav-button" data-target="settings-app" data-app-name="Settings">Settings</button>
+        </nav>
 
         <hr>
 
@@ -265,125 +271,54 @@
             </div>
         </div>
 
-        <div id="shop-app" class="app-section">
-            <h2>Shop & Billing</h2>
+        <div id="daybook-app" class="app-section">
+            <div class="input-section daybook-section">
+                <h3>Add/Edit Daybook Entry</h3>
+                <input type="hidden" id="daybookEditIndex">
+                <label for="daybookDate">Date (AD):</label>
+                <input type="date" id="daybookDate">
+                <label for="daybookTime">Time:</label>
+                <input type="time" id="daybookTime">
+                <label for="daybookActivity">Activity/Description:</label>
+                <textarea id="daybookActivity" rows="4" placeholder="e.g., Received school fees, Customer visit for query, Reported issue with network."></textarea>
+                <label for="daybookAmount">Amount (if applicable):</label>
+                <input type="number" id="daybookAmount" placeholder="e.g., 500.00 (optional)">
+                <label for="daybookType">Type (optional):</label>
+                <select id="daybookType">
+                    <option value="">-- Select Type --</option>
+                    <option value="Income">Income</option>
+                    <option value="Expense">Expense</option>
+                    <option value="Visitor">Visitor</option>
+                    <option value="Complain">Complain</option>
+                    <option value="General">General</option>
+                </select>
 
-            <div class="shop-tabs">
-                <button class="shop-tab-button active" data-shop-target="product-management">Product Management</button>
-                <button class="shop-tab-button" data-shop-target="billing-interface">Billing Interface</button>
-            </div>
-
-            <div id="product-management" class="shop-tab-content active-shop-tab">
-                <div class="input-section shop-section">
-                    <h3>Add/Edit Product</h3>
-                    <input type="hidden" id="productEditId">
-                    <label for="productName">Product Name:</label>
-                    <input type="text" id="productName" placeholder="e.g., Notebook">
-
-                    <label for="productPrice">Price (NPR):</label>
-                    <input type="number" id="productPrice" step="0.01" placeholder="e.g., 50.00">
-
-                    <label for="productStock">Stock Quantity:</label>
-                    <input type="number" id="productStock" min="0" placeholder="e.g., 100">
-
-                    <label for="productCategory">Category:</label>
-                    <input type="text" id="productCategory" placeholder="e.g., Stationery, Electronics">
-
-                    <div class="form-actions">
-                        <button id="addProductBtn">Add Product</button>
-                        <button id="updateProductBtn" style="display: none;">Update Product</button>
-                        <button id="clearProductFormBtn">Clear Product Form</button>
-                    </div>
-                </div>
-
-                <hr>
-
-                <div class="data-section">
-                    <h3>All Products</h3>
-                    <table id="productTable">
-                        <thead>
-                            <tr>
-                                <th>Product Name</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Category</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            </tbody>
-                    </table>
-                    <button id="printProductData">Print Product List</button>
+                <div class="form-actions">
+                    <button id="addDaybookEntry">Add Daybook Entry</button>
+                    <button id="updateDaybookEntry" style="display: none;">Update Daybook Entry</button>
+                    <button id="clearDaybookFormBtn">Clear Daybook Form</button>
                 </div>
             </div>
 
-            <div id="billing-interface" class="shop-tab-content">
-                <div class="input-section shop-billing-section">
-                    <h3>Create New Bill</h3>
-                    <label for="billDate">Bill Date (AD):</label>
-                    <input type="date" id="billDate">
+            <hr>
 
-                    <label for="customerName">Customer Name (Optional):</label>
-                    <input type="text" id="customerName" placeholder="e.g., Ram Sharma">
-
-                    <div class="product-selection">
-                        <label for="selectProduct">Add Product to Bill:</label>
-                        <select id="selectProduct">
-                            <option value="">-- Select Product --</option>
-                            </select>
-                        <label for="billingQuantity">Quantity:</label>
-                        <input type="number" id="billingQuantity" value="1" min="1">
-                        <button id="addProductToBillBtn">Add to Bill</button>
-                    </div>
-
-                    <hr>
-
-                    <h3>Bill Items</h3>
-                    <table id="billItemsTable">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Quantity</th>
-                                <th>Price</th>
-                                <th>Subtotal</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="3" style="text-align: right;"><strong>Total:</strong></td>
-                                <td id="billTotalAmount">0.00</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                    <div class="form-actions">
-                        <button id="generateBillBtn">Generate Bill</button>
-                        <button id="clearBillFormBtn">Clear Bill</button>
-                    </div>
-                </div>
-
-                <hr>
-
-                <div class="data-section">
-                    <h3>Recent Sales Bills</h3>
-                    <table id="salesTable">
-                        <thead>
-                            <tr>
-                                <th>Bill No.</th>
-                                <th>Date (BS)</th>
-                                <th>Customer</th>
-                                <th>Total Amount</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            </tbody>
-                    </table>
-                    <button id="printSalesData">Print Sales Data</button>
-                </div>
+            <div class="data-section">
+                <h3>All Daybook Entries</h3>
+                <table id="daybookTable">
+                    <thead>
+                        <tr>
+                            <th>Date (BS)</th>
+                            <th>Time</th>
+                            <th>Activity/Description</th>
+                            <th>Amount</th>
+                            <th>Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+                <button id="printDaybookData">Print Daybook Data</button>
             </div>
         </div>
 
@@ -392,8 +327,12 @@
                 <h3>General Settings</h3>
                 <label for="companyName">Company Name for Print:</label>
                 <input type="text" id="companyName" placeholder="Your Company Name">
+                <label for="companyAddress">Company Address:</label>
+                <input type="text" id="companyAddress" placeholder="Your Company Address">
+                <label for="companyContact">Company Contact No:</label>
+                <input type="text" id="companyContact" placeholder="Your Company Contact Number">
                 <div class="form-actions">
-                    <button id="saveCompanyName">Save Company Name</button>
+                    <button id="saveCompanyDetails">Save Company Details</button>
                 </div>
             </div>
         </div>
