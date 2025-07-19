@@ -5,7 +5,7 @@ body {
     padding: 30px;
     display: flex;
     justify-content: center;
-    align-items: center; /* Changed to center for vertical centering of login form */
+    align-items: center;
     min-height: 100vh;
     color: #333;
 }
@@ -172,6 +172,8 @@ input[type="text"],
 input[type="number"],
 input[type="date"],
 input[type="time"],
+input[type="email"], /* Added email input */
+input[type="password"], /* Added password input */
 select,
 textarea {
     width: calc(100% - 22px);
@@ -188,6 +190,8 @@ input[type="text"]:focus,
 input[type="number"]:focus,
 input[type="date"]:focus,
 input[type="time"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
 select:focus,
 textarea:focus {
     border-color: #4a69bd;
@@ -433,8 +437,8 @@ hr {
     }
 }
 
-/* --- Login Section Styles (Updated for colorful and nice look) --- */
-.login-container {
+/* --- Auth Section Styles (Login, Register, Reset Password) --- */
+.auth-container {
     background: linear-gradient(135deg, #6dd5ed, #2193b0); /* Blue gradient background */
     padding: 50px 30px; /* Increased padding */
     border-radius: 15px; /* More rounded corners */
@@ -443,15 +447,15 @@ hr {
     max-width: 450px; /* Slightly wider */
     text-align: center;
     box-sizing: border-box;
-    /* Removed margin-top, relying on body's align-items: center */
     color: #fff; /* White text for contrast */
     animation: fadeIn 1s ease-out; /* Fade-in animation */
 
-    /* Added flex properties for internal layout */
-    display: flex;
+    display: flex; /* Use flex to manage forms inside */
     flex-direction: column;
-    justify-content: center; /* Center content vertically within login box */
-    align-items: stretch; /* Make children stretch to fill width */
+    justify-content: center;
+    align-items: stretch;
+    position: relative; /* For absolute positioning of forms */
+    min-height: 500px; /* Ensure enough height for forms */
 }
 
 @keyframes fadeIn {
@@ -459,84 +463,138 @@ hr {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.login-container h2 {
-    color: #fff; /* White heading */
-    margin-bottom: 35px;
-    font-size: 2.5em; /* Larger heading */
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* Subtle text shadow */
+.auth-form {
+    position: absolute; /* Stack forms on top of each other */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 50px 30px; /* Match container padding */
+    box-sizing: border-box;
+    display: none; /* Hidden by default */
+    flex-direction: column; /* For internal layout of each form */
+    justify-content: center;
+    align-items: stretch;
+    transition: opacity 0.5s ease; /* Smooth transition when switching forms */
+    opacity: 0;
 }
 
-.login-container .input-group {
-    margin-bottom: 25px; /* More space between inputs */
+.auth-form.active-form {
+    display: flex; /* Show active form */
+    opacity: 1;
+}
+
+.auth-container h2 {
+    color: #fff; /* White heading */
+    margin-bottom: 35px;
+    font-size: 2.5em;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.auth-container .input-group {
+    margin-bottom: 25px;
     text-align: left;
-    /* Ensure input group takes full width */
     width: 100%;
 }
 
-.login-container label {
-    display: block; /* This ensures labels are on new lines */
-    margin-bottom: 10px; /* More space below label */
+.auth-container label {
+    display: block;
+    margin-bottom: 10px;
     font-weight: bold;
-    color: #e0f7fa; /* Lighter color for labels */
+    color: #e0f7fa;
     font-size: 1.1em;
 }
 
-.login-container input[type="text"],
-.login-container input[type="password"] {
-    width: 100%; /* Make inputs take full width of their parent (input-group) */
-    padding: 15px; /* Larger padding for inputs */
-    border: none; /* No default border */
-    border-radius: 8px; /* More rounded inputs */
-    box-sizing: border-box; /* Include padding in width calculation */
-    font-size: 1.1em; /* Larger font in inputs */
-    background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white background */
+.auth-container input[type="email"],
+.auth-container input[type="password"] {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 1.1em;
+    background-color: rgba(255, 255, 255, 0.9);
     color: #333;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Inner shadow */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
 
-.login-container input[type="text"]:focus,
-.login-container input[type="password"]:focus {
-    background-color: #fff; /* Solid white on focus */
-    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5), inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Outer glow on focus */
+.auth-container input[type="email"]:focus,
+.auth-container input[type="password"]:focus {
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5), inset 0 1px 3px rgba(0, 0, 0, 0.1);
     outline: none;
 }
 
-.login-container button#loginButton {
-    width: 100%; /* Make button take full width */
-    padding: 18px; /* Larger button */
-    background: linear-gradient(45deg, #ff7e5f, #feb47b); /* Warm orange gradient */
+.auth-container button {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(45deg, #ff7e5f, #feb47b);
     color: white;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 1.3em; /* Larger font */
+    font-size: 1.3em;
     font-weight: bold;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Button shadow */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
-    letter-spacing: 1px; /* Spaced out letters */
-    margin-top: 20px; /* Add some space above the button */
+    letter-spacing: 1px;
+    margin-top: 20px;
 }
 
-.login-container button#loginButton:hover {
-    background: linear-gradient(45deg, #feb47b, #ff7e5f); /* Reverse gradient on hover */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Stronger shadow on hover */
-    transform: translateY(-2px); /* Slight lift */
+.auth-container button:hover {
+    background: linear-gradient(45deg, #feb47b, #ff7e5f);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
 }
 
-.login-container button#loginButton:active {
-    transform: translateY(0); /* Press effect */
+.auth-container button:active {
+    transform: translateY(0);
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
 }
 
-.login-note {
-    margin-top: 25px;
-    font-size: 0.95em;
-    color: #c8e6c9; /* Lighter color for note */
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    width: 100%; /* Ensure note takes full width */
+.auth-container .google-btn {
+    background: #DB4437; /* Google Red */
+    margin-top: 15px; /* Space between regular login and Google */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
+.auth-container .google-btn:hover {
+    background: #c23321;
+}
+
+.auth-container .google-btn::before {
+    content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.083 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 8.065 3.09l5.66-5.66C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20V20h-4.389z"/><path fill="#FF3D00" d="M6.306 14.691L11.649 19.01C12.95 16.68 15.347 15 18 15c3.059 0 5.842 1.154 8.065 3.09l5.66-5.66C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20V20h-4.389z"/><path fill="#4CAF50" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.083 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 8.065 3.09l5.66-5.66C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20V20h-4.389z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.083 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 8.065 3.09l5.66-5.66C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20V20h-4.389z"/></svg>');
+    display: inline-block;
+    vertical-align: middle;
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+}
+
+
+.auth-link {
+    margin-top: 20px;
+    font-size: 0.95em;
+    color: #c8e6c9;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    width: 100%;
+}
+
+.auth-link a {
+    color: #e0f7fa; /* Lighter blue for links */
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.2s ease;
+}
+
+.auth-link a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
 
 /* --- Custom Alert Box Styles (Enhanced) --- */
 .custom-alert-overlay {
@@ -545,24 +603,24 @@ hr {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+    background-color: rgba(0, 0, 0, 0.6);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    backdrop-filter: blur(5px); /* Blurred background */
+    backdrop-filter: blur(5px);
 }
 
 .custom-alert-box {
     background-color: #fff;
-    padding: 35px; /* More padding */
-    border-radius: 10px; /* More rounded */
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4); /* Stronger shadow */
+    padding: 35px;
+    border-radius: 10px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     text-align: center;
-    max-width: 400px; /* Slightly wider */
+    max-width: 400px;
     width: 90%;
-    transform: scale(0.9); /* Initial smaller size */
-    animation: alertPopUp 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; /* Pop-up animation */
+    transform: scale(0.9);
+    animation: alertPopUp 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
 }
 
 @keyframes alertPopUp {
@@ -571,7 +629,7 @@ hr {
 }
 
 .custom-alert-box p {
-    font-size: 1.2em; /* Larger message font */
+    font-size: 1.2em;
     margin-bottom: 25px;
     color: #333;
     font-weight: 500;
@@ -580,7 +638,7 @@ hr {
 .custom-alert-box button {
     background-color: #4a69bd;
     color: white;
-    padding: 12px 25px; /* Larger button */
+    padding: 12px 25px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -596,4 +654,117 @@ hr {
 
 .custom-alert-box button:active {
     transform: translateY(0);
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+    .container, .auth-container {
+        padding: 20px;
+        border-radius: 8px;
+    }
+    h1 {
+        font-size: 2em;
+    }
+    h2#currentAppName {
+        font-size: 1.5em;
+    }
+    .dashboard {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    .datetime, .total-info, .finance-summary {
+        font-size: 1em;
+        min-width: unset;
+        width: 100%;
+    }
+    .logout-btn {
+        position: static; /* Remove absolute positioning */
+        margin-top: 15px;
+        width: 100%;
+    }
+    .main-nav {
+        flex-direction: column;
+        margin-bottom: 20px;
+    }
+    .nav-button {
+        font-size: 1em;
+        padding: 12px;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .nav-button:last-child {
+        border-bottom: none;
+    }
+    .input-section, .data-section, .settings-section, .filter-section {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    input[type="text"], input[type="number"], input[type="date"], input[type="time"], input[type="email"], input[type="password"], select, textarea {
+        padding: 10px;
+        font-size: 0.95em;
+        margin-bottom: 15px;
+    }
+    button {
+        padding: 10px 15px;
+        font-size: 0.95em;
+    }
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .form-actions button {
+        width: 100%;
+    }
+    table th, table td {
+        padding: 8px 10px;
+        font-size: 0.9em;
+    }
+    .action-buttons {
+        flex-direction: column;
+        gap: 5px;
+    }
+    .edit-btn, .delete-btn {
+        width: 100%;
+        padding: 6px 10px;
+        font-size: 0.85em;
+    }
+
+    /* Auth form specific responsive adjustments */
+    .auth-container {
+        padding: 30px 20px;
+        max-width: 90%; /* Adjust max-width for smaller screens */
+    }
+    .auth-container h2 {
+        font-size: 2em;
+        margin-bottom: 25px;
+    }
+    .auth-container .input-group {
+        margin-bottom: 20px;
+    }
+    .auth-container input {
+        padding: 12px;
+        font-size: 1em;
+    }
+    .auth-container button {
+        padding: 15px;
+        font-size: 1.1em;
+    }
+    .auth-link {
+        margin-top: 15px;
+        font-size: 0.9em;
+    }
+    .custom-alert-box {
+        padding: 25px;
+    }
+    .custom-alert-box p {
+        font-size: 1em;
+    }
+    .custom-alert-box button {
+        padding: 10px 20px;
+        font-size: 0.9em;
+    }
 }
