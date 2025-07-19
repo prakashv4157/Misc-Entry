@@ -10,14 +10,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentDateADSpan = document.getElementById('currentDateAD');
     const currentDateBSSpan = document.getElementById('currentDateBS');
     const currentTimeSpan = document.getElementById('currentTime');
+    const mainAppContainer = document.getElementById('main-app-container');
+    const loginSection = document.getElementById('login-section');
+    const logoutButton = document.getElementById('logoutButton');
+
+    // --- Login DOM Elements ---
+    const loginUsernameInput = document.getElementById('loginUsername');
+    const loginPasswordInput = document.getElementById('loginPassword');
+    const loginButton = document.getElementById('loginButton');
+
+    // --- Custom Alert DOM Elements ---
+    const customAlertOverlay = document.getElementById('customAlert');
+    const customAlertMessage = document.getElementById('customAlertMessage');
+    const customAlertCloseBtn = document.getElementById('customAlertCloseBtn');
 
     // --- Data Storage ---
+    // IMPORTANT: For a real application, these credentials would be securely stored on a server.
+    // This is a client-side demo only and NOT secure.
+    const VALID_USERNAME = 'user';
+    const VALID_PASSWORD = 'password';
+    const DEMO_USER_ID = 'demoUser123'; // A fixed ID for this client-side demo user
+
+    let currentUser = null; // Will store the ID of the logged-in user
     let receiptEntries = [];
     let financeTransactions = [];
-    let visitors = []; // New data array for visitors
-    let complains = []; // New data array for complains
+    let visitors = [];
+    let complains = [];
     let categories = ['Tuition', 'Books', 'Fees', 'Supplies', 'Other'];
-    let companyName = "Your Company Name"; // Default company name
+    let companyName = "Your Company Name";
 
     // --- Receipt Section DOM Elements ---
     const receiptsAppSection = document.getElementById('receipts-app');
@@ -80,24 +100,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Settings Section DOM Elements ---
     const settingsAppSection = document.getElementById('settings-app');
-    // companyNameInput and saveCompanyNameButton are already defined globally.
+
+
+    // --- Custom Alert/Message Box Function ---
+    const showAlert = (message) => {
+        customAlertMessage.textContent = message;
+        customAlertOverlay.style.display = 'flex';
+    };
+
+    customAlertCloseBtn.addEventListener('click', () => {
+        customAlertOverlay.style.display = 'none';
+    });
+
 
     // --- Utility Functions ---
-
-    // Converts AD (Gregorian) date string (YYYY-MM-DD) to Nepali BS date string
     const convertADToBS = (adDateString) => {
         if (!adDateString) return '';
         try {
             const [year, month, day] = adDateString.split('-').map(Number);
-            const nepaliDate = new NepaliDate(year, month - 1, day); // month-1 because NepaliDate expects 0-indexed month
+            const nepaliDate = new NepaliDate(year, month - 1, day);
             return `${nepaliDate.getBSYear()}-${(nepaliDate.getBSMonth() + 1).toString().padStart(2, '0')}-${nepaliDate.getBSDay().toString().padStart(2, '0')}`;
         } catch (e) {
             console.error("Error converting AD to BS date:", e);
-            return adDateString; // Return original if conversion fails
+            return adDateString;
         }
     };
 
-    // Sets today's date as default for the date input fields (AD)
     const setTodayDate = (inputElement) => {
         const today = new Date();
         const year = today.getFullYear();
@@ -106,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
         inputElement.value = `${year}-${month}-${day}`;
     };
 
-    // Updates the dashboard date and time
     const updateDateTime = () => {
         const now = new Date();
         currentDateADSpan.textContent = now.toLocaleDateString('en-US', {
@@ -118,58 +145,73 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- Local Storage Management ---
+    // --- Local Storage Management (User-specific keys) ---
+    const getStorageKey = (key) => `${key}_${currentUser}`;
+
     const saveReceiptEntries = () => {
-        localStorage.setItem('receiptEntries', JSON.stringify(receiptEntries));
+        if (currentUser) localStorage.setItem(getStorageKey('receiptEntries'), JSON.stringify(receiptEntries));
         updateDashboardMetrics();
     };
 
     const loadReceiptEntries = () => {
-        const storedEntries = localStorage.getItem('receiptEntries');
+        if (!currentUser) { receiptEntries = []; return; } // No user, no data
+        const storedEntries = localStorage.getItem(getStorageKey('receiptEntries'));
         if (storedEntries) {
             receiptEntries = JSON.parse(storedEntries);
+        } else {
+            receiptEntries = [];
         }
         renderReceiptTable(receiptEntries);
     };
 
     const saveFinanceTransactions = () => {
-        localStorage.setItem('financeTransactions', JSON.stringify(financeTransactions));
+        if (currentUser) localStorage.setItem(getStorageKey('financeTransactions'), JSON.stringify(financeTransactions));
         updateDashboardMetrics();
     };
 
     const loadFinanceTransactions = () => {
-        const storedTransactions = localStorage.getItem('financeTransactions');
+        if (!currentUser) { financeTransactions = []; return; }
+        const storedTransactions = localStorage.getItem(getStorageKey('financeTransactions'));
         if (storedTransactions) {
             financeTransactions = JSON.parse(storedTransactions);
+        } else {
+            financeTransactions = [];
         }
         renderFinanceTable(financeTransactions);
     };
 
     const saveVisitors = () => {
-        localStorage.setItem('visitors', JSON.stringify(visitors));
+        if (currentUser) localStorage.setItem(getStorageKey('visitors'), JSON.stringify(visitors));
     };
 
     const loadVisitors = () => {
-        const storedVisitors = localStorage.getItem('visitors');
+        if (!currentUser) { visitors = []; return; }
+        const storedVisitors = localStorage.getItem(getStorageKey('visitors'));
         if (storedVisitors) {
             visitors = JSON.parse(storedVisitors);
+        } else {
+            visitors = [];
         }
         renderVisitorTable(visitors);
     };
 
     const saveComplains = () => {
-        localStorage.setItem('complains', JSON.stringify(complains));
+        if (currentUser) localStorage.setItem(getStorageKey('complains'), JSON.stringify(complains));
     };
 
     const loadComplains = () => {
-        const storedComplains = localStorage.getItem('complains');
+        if (!currentUser) { complains = []; return; }
+        const storedComplains = localStorage.getItem(getStorageKey('complains'));
         if (storedComplains) {
             complains = JSON.parse(storedComplains);
+        } else {
+            complains = [];
         }
         renderComplainTable(complains);
     };
 
     const saveCategories = () => {
+        // Categories are global, not user-specific in this demo
         localStorage.setItem('receiptCategories', JSON.stringify(categories));
     };
 
@@ -182,10 +224,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const saveCompanyNameSetting = () => {
+        // Company name is global, not user-specific
         localStorage.setItem('receiptCompanyName', companyNameInput.value.trim());
         companyName = companyNameInput.value.trim();
-        displayCompanyName.textContent = companyName; // Update header immediately
-        alert('Company name saved!');
+        displayCompanyName.textContent = companyName;
+        showAlert('Company name saved!');
     };
 
     const loadCompanyNameSetting = () => {
@@ -194,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
             companyName = storedCompanyName;
             companyNameInput.value = storedCompanyName;
         }
-        displayCompanyName.textContent = companyName; // Set header on load
+        displayCompanyName.textContent = companyName;
     };
 
     // --- Category Management ---
@@ -218,9 +261,9 @@ document.addEventListener('DOMContentLoaded', () => {
             categorySelect.value = newCat;
             newCategoryInput.value = '';
         } else if (newCat && categories.includes(newCat)) {
-            alert('Category already exists!');
+            showAlert('Category already exists!');
         } else {
-            alert('Please enter a category name.');
+            showAlert('Please enter a category name.');
         }
     });
 
@@ -258,9 +301,10 @@ document.addEventListener('DOMContentLoaded', () => {
             deleteButton.textContent = 'Delete';
             deleteButton.classList.add('delete-btn');
             deleteButton.addEventListener('click', () => {
+                // Find original index in the unfiltered array
                 const originalIndex = receiptEntries.findIndex(e =>
                     e.receiptNo === entry.receiptNo && e.amount === entry.amount && e.date === entry.date
-                ); // Simplified find for unique enough attributes
+                );
                 if (originalIndex !== -1) deleteReceiptEntry(originalIndex);
             });
             actionsCell.appendChild(deleteButton);
@@ -407,9 +451,9 @@ document.addEventListener('DOMContentLoaded', () => {
             saveReceiptEntries();
             renderReceiptTable(receiptEntries);
             clearReceiptForm();
-            alert('Receipt entry added successfully!');
+            showAlert('Receipt entry added successfully!');
         } else {
-            alert('Please fill in all receipt fields correctly (Amount must be a number, Category must be selected).');
+            showAlert('Please fill in all receipt fields correctly (Amount must be a number, Category must be selected).');
         }
     });
 
@@ -429,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateEntryButton.addEventListener('click', () => {
         const indexToUpdate = parseInt(editIndexHidden.value);
         if (isNaN(indexToUpdate) || indexToUpdate < 0 || indexToUpdate >= receiptEntries.length) {
-            alert('Error: No receipt entry selected for update.'); return;
+            showAlert('Error: No receipt entry selected for update.'); return;
         }
 
         const date = receiptDateInput.value;
@@ -446,21 +490,21 @@ document.addEventListener('DOMContentLoaded', () => {
             clearReceiptForm();
             addEntryButton.style.display = 'inline-block';
             updateEntryButton.style.display = 'none';
-            alert('Receipt entry updated successfully!');
+            showAlert('Receipt entry updated successfully!');
         } else {
-            alert('Please fill in all receipt fields correctly for update.');
+            showAlert('Please fill in all receipt fields correctly for update.');
         }
     });
 
     const deleteReceiptEntry = (indexToDelete) => {
-        if (confirm('Are you sure you want to delete this receipt entry?')) {
+        if (confirm('Are you sure you want to delete this receipt entry?')) { // Using native confirm for delete
             receiptEntries.splice(indexToDelete, 1);
             saveReceiptEntries();
             applyFilter();
             clearReceiptForm();
             addEntryButton.style.display = 'inline-block';
             updateEntryButton.style.display = 'none';
-            alert('Receipt entry deleted!');
+            showAlert('Receipt entry deleted!');
         }
     };
 
@@ -477,9 +521,9 @@ document.addEventListener('DOMContentLoaded', () => {
             saveFinanceTransactions();
             renderFinanceTable(financeTransactions);
             clearFinanceForm();
-            alert('Finance transaction added successfully!');
+            showAlert('Finance transaction added successfully!');
         } else {
-            alert('Please fill in all finance fields correctly (Amount must be a number, Type must be selected).');
+            showAlert('Please fill in all finance fields correctly (Amount must be a number, Type must be selected).');
         }
     });
 
@@ -497,7 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateFinanceEntryButton.addEventListener('click', () => {
         const indexToUpdate = parseInt(financeEditIndexHidden.value);
         if (isNaN(indexToUpdate) || indexToUpdate < 0 || indexToUpdate >= financeTransactions.length) {
-            alert('Error: No finance transaction selected for update.'); return;
+            showAlert('Error: No finance transaction selected for update.'); return;
         }
 
         const date = financeDateInput.value;
@@ -512,9 +556,9 @@ document.addEventListener('DOMContentLoaded', () => {
             clearFinanceForm();
             addFinanceEntryButton.style.display = 'inline-block';
             updateFinanceEntryButton.style.display = 'none';
-            alert('Finance transaction updated successfully!');
+            showAlert('Finance transaction updated successfully!');
         } else {
-            alert('Please fill in all finance fields correctly for update.');
+            showAlert('Please fill in all finance fields correctly for update.');
         }
     });
 
@@ -526,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearFinanceForm();
             addFinanceEntryButton.style.display = 'inline-block';
             updateFinanceEntryButton.style.display = 'none';
-            alert('Finance transaction deleted!');
+            showAlert('Finance transaction deleted!');
         }
     };
 
@@ -545,9 +589,9 @@ document.addEventListener('DOMContentLoaded', () => {
             saveVisitors();
             renderVisitorTable(visitors);
             clearVisitorForm();
-            alert('Visitor entry added successfully!');
+            showAlert('Visitor entry added successfully!');
         } else {
-            alert('Please fill in Date, Name, Contact, Purpose, and Time In for the visitor entry.');
+            showAlert('Please fill in Date, Name, Contact, Purpose, and Time In for the visitor entry.');
         }
     });
 
@@ -567,7 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateVisitorEntryButton.addEventListener('click', () => {
         const indexToUpdate = parseInt(visitorEditIndexHidden.value);
         if (isNaN(indexToUpdate) || indexToUpdate < 0 || indexToUpdate >= visitors.length) {
-            alert('Error: No visitor entry selected for update.'); return;
+            showAlert('Error: No visitor entry selected for update.'); return;
         }
 
         const date = visitorDateInput.value;
@@ -584,9 +628,9 @@ document.addEventListener('DOMContentLoaded', () => {
             clearVisitorForm();
             addVisitorEntryButton.style.display = 'inline-block';
             updateVisitorEntryButton.style.display = 'none';
-            alert('Visitor entry updated successfully!');
+            showAlert('Visitor entry updated successfully!');
         } else {
-            alert('Please fill in all visitor fields correctly for update.');
+            showAlert('Please fill in all visitor fields correctly for update.');
         }
     });
 
@@ -598,7 +642,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearVisitorForm();
             addVisitorEntryButton.style.display = 'inline-block';
             updateVisitorEntryButton.style.display = 'none';
-            alert('Visitor entry deleted!');
+            showAlert('Visitor entry deleted!');
         }
     };
 
@@ -616,9 +660,9 @@ document.addEventListener('DOMContentLoaded', () => {
             saveComplains();
             renderComplainTable(complains);
             clearComplainForm();
-            alert('Complain entry added successfully!');
+            showAlert('Complain entry added successfully!');
         } else {
-            alert('Please fill in Date, Complainant Name, Details, and Status for the complain entry.');
+            showAlert('Please fill in Date, Complainant Name, Details, and Status for the complain entry.');
         }
     });
 
@@ -637,7 +681,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateComplainEntryButton.addEventListener('click', () => {
         const indexToUpdate = parseInt(complainEditIndexHidden.value);
         if (isNaN(indexToUpdate) || indexToUpdate < 0 || indexToUpdate >= complains.length) {
-            alert('Error: No complain entry selected for update.'); return;
+            showAlert('Error: No complain entry selected for update.'); return;
         }
 
         const date = complainDateInput.value;
@@ -653,9 +697,9 @@ document.addEventListener('DOMContentLoaded', () => {
             clearComplainForm();
             addComplainEntryButton.style.display = 'inline-block';
             updateComplainEntryButton.style.display = 'none';
-            alert('Complain entry updated successfully!');
+            showAlert('Complain entry updated successfully!');
         } else {
-            alert('Please fill in all complain fields correctly for update.');
+            showAlert('Please fill in all complain fields correctly for update.');
         }
     });
 
@@ -667,7 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearComplainForm();
             addComplainEntryButton.style.display = 'inline-block';
             updateComplainEntryButton.style.display = 'none';
-            alert('Complain entry deleted!');
+            showAlert('Complain entry deleted!');
         }
     };
 
@@ -712,7 +756,7 @@ document.addEventListener('DOMContentLoaded', () => {
         complainantNameInput.value = '';
         complainantContactInput.value = '';
         complainDetailsInput.value = '';
-        complainStatusSelect.value = 'New'; // Reset to default status
+        complainStatusSelect.value = 'New';
         complainEditIndexHidden.value = '';
         addComplainEntryButton.style.display = 'inline-block';
         updateComplainEntryButton.style.display = 'none';
@@ -725,7 +769,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Filter Functionality (Applies to CURRENTLY ACTIVE table only) ---
-    let currentActiveAppId = 'receipts-app'; // Track the currently active app
+    let currentActiveAppId = 'receipts-app';
 
     const applyFilter = () => {
         const filterText = filterInput.value.toLowerCase();
@@ -759,14 +803,13 @@ document.addEventListener('DOMContentLoaded', () => {
             );
             renderComplainTable(filteredData);
         }
-        // Settings app has no table to filter
     };
 
     filterInput.addEventListener('keyup', applyFilter);
 
     clearFilterButton.addEventListener('click', () => {
         filterInput.value = '';
-        applyFilter(); // Rerender current table without filter
+        applyFilter();
     });
 
     // --- Print Functionality (Centralized) ---
@@ -844,22 +887,68 @@ document.addEventListener('DOMContentLoaded', () => {
             const targetAppId = button.dataset.target;
             const appName = button.dataset.appName;
 
-            // Remove active class from all buttons and hide all sections
             navButtons.forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.app-section').forEach(section => section.classList.remove('active-app'));
 
-            // Add active class to clicked button and show target section
             button.classList.add('active');
             document.getElementById(targetAppId).classList.add('active-app');
 
-            // Update global active app tracker
             currentActiveAppId = targetAppId;
-            currentAppName.textContent = appName; // Update H2 title
+            currentAppName.textContent = appName;
 
-            // Clear filter and re-render current table when switching apps
             filterInput.value = '';
-            applyFilter(); // This will re-render the current active table
+            applyFilter();
         });
+    });
+
+    // --- Login/Logout Functions ---
+    const showLogin = () => {
+        mainAppContainer.style.display = 'none';
+        loginSection.style.display = 'flex'; // Use flex to center the login form
+        loginUsernameInput.value = '';
+        loginPasswordInput.value = '';
+        currentUser = null;
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('currentUser');
+    };
+
+    const showMainApp = () => {
+        loginSection.style.display = 'none';
+        mainAppContainer.style.display = 'block';
+        // Reload all user-specific data after login
+        loadCategories(); // Categories are global, but re-populate select
+        loadReceiptEntries();
+        loadFinanceTransactions();
+        loadVisitors();
+        loadComplains();
+        loadCompanyNameSetting(); // Load and set company name on h1
+        updateDashboardMetrics();
+        // Set initial active application (Receipts by default) and update H2
+        receiptsAppSection.classList.add('active-app');
+        document.querySelector('.nav-button[data-target="receipts-app"]').classList.add('active');
+        currentAppName.textContent = document.querySelector('.nav-button.active').dataset.appName;
+    };
+
+    loginButton.addEventListener('click', () => {
+        const username = loginUsernameInput.value;
+        const password = loginPasswordInput.value;
+
+        if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+            currentUser = DEMO_USER_ID; // Set a fixed user ID for this demo
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('currentUser', currentUser);
+            showMainApp();
+            showAlert('Login successful!');
+        } else {
+            showAlert('Invalid username or password.');
+        }
+    });
+
+    logoutButton.addEventListener('click', () => {
+        if (confirm('Are you sure you want to log out?')) {
+            showLogin();
+            showAlert('Logged out successfully.');
+        }
     });
 
 
@@ -871,25 +960,20 @@ document.addEventListener('DOMContentLoaded', () => {
         setTodayDate(visitorDateInput);
         setTodayDate(complainDateInput);
 
-        // Load all data from local storage
-        loadCategories();
-        loadReceiptEntries();
-        loadFinanceTransactions();
-        loadVisitors();
-        loadComplains();
-        loadCompanyNameSetting(); // Load and set company name on h1
-
-        // Update dashboard (receipts and finance totals)
-        updateDashboardMetrics();
-
         // Start time update
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
-        // Set initial active application (Receipts by default) and update H2
-        receiptsAppSection.classList.add('active-app');
-        document.querySelector('.nav-button[data-target="receipts-app"]').classList.add('active');
-        currentAppName.textContent = document.querySelector('.nav-button.active').dataset.appName;
+        // Check login status
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const storedCurrentUser = localStorage.getItem('currentUser');
+
+        if (isLoggedIn && storedCurrentUser) {
+            currentUser = storedCurrentUser;
+            showMainApp();
+        } else {
+            showLogin();
+        }
     };
 
     initializeApp();
