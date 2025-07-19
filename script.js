@@ -124,7 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Daybook Section DOM Elements (New) ---
     const daybookAppSection = document.getElementById('daybook-app');
     const daybookDateInput = document.getElementById('daybookDate');
-    // const daybookTimeInput = document.getElementById('daybookTime'); // Removed
     const daybookActivityInput = document.getElementById('daybookActivity');
     const daybookAmountInput = document.getElementById('daybookAmount');
     const daybookTypeSelect = document.getElementById('daybookType');
@@ -137,6 +136,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Settings Section DOM Elements ---
     const settingsAppSection = document.getElementById('settings-app');
+
+    // --- Dashboard DOM Elements (New Home Page) ---
+    const dashboardAppSection = document.getElementById('dashboard-app');
+    const dashboardTotalEntriesCountSpan = document.getElementById('dashboardTotalEntriesCount');
+    const dashboardTotalAmountSumSpan = document.getElementById('dashboardTotalAmountSum');
+    const dashboardTotalIncomeSpan = document.getElementById('dashboardTotalIncome');
+    const dashboardTotalExpensesSpan = document.getElementById('dashboardTotalExpenses');
+    const dashboardNetBalanceSpan = document.getElementById('dashboardNetBalance');
+    const dashboardTotalVisitorsSpan = document.getElementById('dashboardTotalVisitors');
+    const dashboardVisitorsTodaySpan = document.getElementById('dashboardVisitorsToday');
+    const dashboardTotalComplainsSpan = document.getElementById('dashboardTotalComplains');
+    const dashboardPendingComplainsSpan = document.getElementById('dashboardPendingComplains');
 
 
     // --- Custom Alert/Message Box Function ---
@@ -162,12 +173,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const setTodayDate = (inputElement) => {
+    const getTodayADDateString = () => {
         const today = new Date();
         const year = today.getFullYear();
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const day = String(today.getDate()).padStart(2, '0');
-        inputElement.value = `${year}-${month}-${day}`;
+        return `${year}-${month}-${day}`;
+    };
+
+    const setTodayDate = (inputElement) => {
+        inputElement.value = getTodayADDateString();
     };
 
     const setCurrentTime = (inputElement) => {
@@ -370,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
             deleteButton.addEventListener('click', () => deleteReceiptEntry(entry.id));
             actionsCell.appendChild(deleteButton);
         });
-        updateDashboardMetrics();
+        updateDashboardMetrics(); // Always update dashboard after data change
     };
 
     const renderFinanceTable = (dataToRender) => {
@@ -408,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
             deleteButton.addEventListener('click', () => deleteFinanceTransaction(transaction.id));
             actionsCell.appendChild(deleteButton);
         });
-        updateDashboardMetrics();
+        updateDashboardMetrics(); // Always update dashboard after data change
     };
 
     const renderVisitorTable = (dataToRender) => {
@@ -448,6 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
             deleteButton.addEventListener('click', () => deleteVisitorEntry(visitor.id));
             actionsCell.appendChild(deleteButton);
         });
+        updateDashboardMetrics(); // Always update dashboard after data change
     };
 
     const renderComplainTable = (dataToRender) => {
@@ -486,6 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
             deleteButton.addEventListener('click', () => deleteComplainEntry(complain.id));
             actionsCell.appendChild(deleteButton);
         });
+        updateDashboardMetrics(); // Always update dashboard after data change
     };
 
     // --- New: Render Daybook Table ---
@@ -511,7 +528,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dataToRender.forEach((entry) => {
             const row = daybookTableBody.insertRow();
             row.insertCell().textContent = convertADToBS(entry.date);
-            // row.insertCell().textContent = entry.time; // Removed time from table
             row.insertCell().textContent = entry.activity;
             row.insertCell().textContent = entry.amount ? parseFloat(entry.amount).toFixed(2) : '-';
             row.insertCell().textContent = entry.type || '-';
@@ -530,6 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
             deleteButton.addEventListener('click', () => deleteDaybookEntry(entry.id));
             actionsCell.appendChild(deleteButton);
         });
+        updateDashboardMetrics(); // Always update dashboard after data change
     };
 
 
@@ -904,13 +921,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- New CRUD Operations - Daybook ---
     addDaybookEntryButton.addEventListener('click', async () => {
         const date = daybookDateInput.value;
-        // const time = daybookTimeInput.value; // Removed time
         const activity = daybookActivityInput.value.trim();
         const amount = daybookAmountInput.value.trim() ? parseFloat(daybookAmountInput.value.trim()) : 0; // Optional amount
         const type = daybookTypeSelect.value || 'General'; // Default to 'General' if not selected
 
-        if (date && activity) { // Removed time from validation
-            const newDaybookEntry = { date, activity, amount, type }; // Removed time from object
+        if (date && activity) {
+            const newDaybookEntry = { date, activity, amount, type };
             try {
                 const docRef = await getGlobalCollectionRef('daybook').add(newDaybookEntry);
                 daybookEntries.push({ id: docRef.id, ...newDaybookEntry });
@@ -923,13 +939,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 showAlert(`Error adding daybook entry: ${error.message}`);
             }
         } else {
-            showAlert('Please fill in Date and Activity for the daybook entry.'); // Updated alert message
+            showAlert('Please fill in Date and Activity for the daybook entry.');
         }
     });
 
     const editDaybookEntry = (entry) => {
         daybookDateInput.value = entry.date;
-        // daybookTimeInput.value = entry.time; // Removed time
         daybookActivityInput.value = entry.activity;
         daybookAmountInput.value = entry.amount || ''; // Handle optional amount
         daybookTypeSelect.value = entry.type || ''; // Handle optional type
@@ -946,13 +961,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const date = daybookDateInput.value;
-        // const time = daybookTimeInput.value; // Removed time
         const activity = daybookActivityInput.value.trim();
         const amount = daybookAmountInput.value.trim() ? parseFloat(daybookAmountInput.value.trim()) : 0;
         const type = daybookTypeSelect.value || 'General';
 
-        if (date && activity) { // Removed time from validation
-            const updatedEntry = { date, activity, amount, type }; // Removed time from object
+        if (date && activity) {
+            const updatedEntry = { date, activity, amount, type };
             try {
                 await getGlobalCollectionRef('daybook').doc(docIdToUpdate).update(updatedEntry);
                 const indexInArray = daybookEntries.findIndex(e => e.id === docIdToUpdate);
@@ -970,7 +984,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showAlert(`Error updating daybook entry: ${error.message}`);
             }
         } else {
-            showAlert('Please fill in all daybook fields correctly for update.'); // Updated alert message
+            showAlert('Please fill in all daybook fields correctly for update.');
         }
     });
 
@@ -1043,7 +1057,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- New: Clear Daybook Form ---
     const clearDaybookForm = () => {
         setTodayDate(daybookDateInput);
-        // setCurrentTime(daybookTimeInput); // Removed time
         daybookActivityInput.value = '';
         daybookAmountInput.value = '';
         daybookTypeSelect.value = '';
@@ -1060,7 +1073,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Filter Functionality (Applies to CURRENTLY ACTIVE table only) ---
-    let currentActiveAppId = 'receipts-app'; // Default active app
+    let currentActiveAppId = 'dashboard-app'; // Default active app is now dashboard
 
     const applyFilter = () => {
         const filterText = filterInput.value.toLowerCase();
@@ -1106,6 +1119,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 )
             );
             renderDaybookTable(filteredData);
+        } else if (activeAppId === 'dashboard-app' || activeAppId === 'settings-app') {
+            // No table to filter on dashboard or settings.
+            // You might want to hide the filter input for these sections.
         }
     };
 
@@ -1124,8 +1140,8 @@ document.addEventListener('DOMContentLoaded', () => {
         printWindow.document.write('<style>');
         printWindow.document.write('body { font-family: Arial, sans-serif; margin: 20px; }');
         printWindow.document.write('.print-company-title { text-align: center; font-size: 1.8em; font-weight: bold; margin-bottom: 5px; color: #333; }');
-        printWindow.document.write('.print-company-details { text-align: center; font-size: 0.9em; color: #555; margin-bottom: 20px;}'); // New style
-        printWindow.document.write('.print-company-details p { margin: 2px 0; }'); // New style
+        printWindow.document.write('.print-company-details { text-align: center; font-size: 0.9em; color: #555; margin-bottom: 20px;}');
+        printWindow.document.write('.print-company-details p { margin: 2px 0; }');
         printWindow.document.write('h2 { text-align: center; margin-bottom: 15px; color: #555; }');
         printWindow.document.write('table { width: 100%; border-collapse: collapse; margin-top: 20px; }');
         printWindow.document.write('table th, table td { border: 1px solid #ccc; padding: 10px; text-align: left; }');
@@ -1136,7 +1152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (companyName) {
             printWindow.document.write(`<div class="print-company-title">${companyName}</div>`);
         }
-        if (companyAddress || companyContact) { // New: Add address and contact to print
+        if (companyAddress || companyContact) {
             printWindow.document.write(`<div class="print-company-details">`);
             if (companyAddress) printWindow.document.write(`<p>Address: ${companyAddress}</p>`);
             if (companyContact) printWindow.document.write(`<p>Contact: ${companyContact}</p>`);
@@ -1153,23 +1169,17 @@ document.addEventListener('DOMContentLoaded', () => {
     printFinanceDataButton.addEventListener('click', () => printTable('financeTable', 'Income/Expense Report'));
     printVisitorDataButton.addEventListener('click', () => printTable('visitorTable', 'Visitor Entries Report'));
     printComplainDataButton.addEventListener('click', () => printTable('complainTable', 'Complain Entries Report'));
-    printDaybookDataButton.addEventListener('click', () => printTable('daybookTable', 'Daybook Entries Report')); // New
+    printDaybookDataButton.addEventListener('click', () => printTable('daybookTable', 'Daybook Entries Report'));
 
 
-    // --- Dashboard Metrics (only for Receipts and Finance) ---
-    const totalEntriesCountSpan = document.getElementById('totalEntriesCount');
-    const totalAmountSumSpan = document.getElementById('totalAmountSum');
-    const totalIncomeSpan = document.getElementById('totalIncome');
-    const totalExpensesSpan = document.getElementById('totalExpenses');
-    const netBalanceSpan = document.getElementById('netBalance');
+    // --- Dashboard Metrics (Now renders into the dashboard-app section) ---
+    const updateDashboardMetrics = () => {
+        // Receipts
+        dashboardTotalEntriesCountSpan.textContent = receiptEntries.length;
+        const totalReceiptsAmount = receiptEntries.reduce((sum, entry) => sum + (parseFloat(entry.amount) || 0), 0);
+        dashboardTotalAmountSumSpan.textContent = totalReceiptsAmount.toFixed(2);
 
-    const updateReceiptMetrics = () => {
-        totalEntriesCountSpan.textContent = receiptEntries.length;
-        const total = receiptEntries.reduce((sum, entry) => sum + (parseFloat(entry.amount) || 0), 0);
-        totalAmountSumSpan.textContent = total.toFixed(2);
-    };
-
-    const updateFinanceMetrics = () => {
+        // Finance
         let totalIncome = 0;
         let totalExpenses = 0;
         financeTransactions.forEach(transaction => {
@@ -1179,18 +1189,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 totalExpenses += (parseFloat(transaction.amount) || 0);
             }
         });
-
         const netBalance = totalIncome - totalExpenses;
-        totalIncomeSpan.textContent = totalIncome.toFixed(2);
-        totalExpensesSpan.textContent = totalExpenses.toFixed(2);
-        netBalanceSpan.textContent = netBalance.toFixed(2);
+        dashboardTotalIncomeSpan.textContent = totalIncome.toFixed(2);
+        dashboardTotalExpensesSpan.textContent = totalExpenses.toFixed(2);
+        dashboardNetBalanceSpan.textContent = netBalance.toFixed(2);
+        dashboardNetBalanceSpan.style.color = netBalance < 0 ? 'red' : (netBalance > 0 ? 'green' : '#555');
 
-        netBalanceSpan.style.color = netBalance < 0 ? 'red' : (netBalance > 0 ? 'green' : '#555');
-    };
+        // Visitors
+        dashboardTotalVisitorsSpan.textContent = visitors.length;
+        const today = getTodayADDateString();
+        const visitorsToday = visitors.filter(v => v.date === today).length;
+        dashboardVisitorsTodaySpan.textContent = visitorsToday;
 
-    const updateDashboardMetrics = () => {
-        updateReceiptMetrics();
-        updateFinanceMetrics();
+        // Complains
+        dashboardTotalComplainsSpan.textContent = complains.length;
+        const pendingComplains = complains.filter(c => c.status !== 'Resolved' && c.status !== 'Closed').length;
+        dashboardPendingComplainsSpan.textContent = pendingComplains;
     };
 
 
@@ -1215,7 +1229,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Clear filter and re-apply for the new section
             filterInput.value = '';
-            applyFilter();
+            applyFilter(); // This will re-render the appropriate table/data view
+            updateDashboardMetrics(); // Ensure dashboard is always up to date
         });
     });
 
@@ -1259,37 +1274,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 complains = await loadDataFromFirestore('complains');
                 daybookEntries = await loadDataFromFirestore('daybook'); // New
                 loadCategories();
-                loadCompanyDetails(); // New
+                loadCompanyDetails();
 
-                // Render tables with loaded data
+                // Render all tables with loaded data initially (even if not visible)
+                // This ensures metrics are calculated and data is ready when tabs are clicked
                 renderReceiptTable(receiptEntries);
                 renderFinanceTable(financeTransactions);
                 renderVisitorTable(visitors);
                 renderComplainTable(complains);
                 renderDaybookTable(daybookEntries); // New
 
-                updateDashboardMetrics();
+                updateDashboardMetrics(); // Update dashboard with all loaded data
 
-                // Set initial active application (Receipts by default) and update H2
+                // Set initial active application to Dashboard
                 document.querySelectorAll('.app-section').forEach(section => section.classList.remove('active-app'));
                 document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
-                receiptsAppSection.classList.add('active-app');
-                document.querySelector('.nav-button[data-target="receipts-app"]').classList.add('active');
-                currentAppName.textContent = document.querySelector('.nav-button.active').dataset.appName;
+
+                dashboardAppSection.classList.add('active-app');
+                document.querySelector('.nav-button[data-target="dashboard-app"]').classList.add('active');
+                currentAppName.textContent = "Dashboard"; // Set app name to Dashboard
 
                 // Clear all forms
                 clearReceiptForm();
                 clearFinanceForm();
                 clearVisitorForm();
                 clearComplainForm();
-                clearDaybookForm(); // New
+                clearDaybookForm();
 
-                applyFilter(); // Apply initial filter (which is usually empty, showing all)
+                filterInput.value = ''; // Clear filter when logging in
+                // No need to call applyFilter immediately here as dashboard has no filterable table.
+                // It will be called by nav button clicks later.
+
             } catch (error) {
                 console.error("Error during data loading after login:", error);
                 showAlert(`Error loading data: ${error.message}. Please check console for details.`);
                 // If data loading fails, it might be better to revert to login or show a critical error.
-                // For now, we'll just show an alert and keep the UI visible.
             }
 
         } else {
@@ -1302,18 +1321,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Clear all local data
                 receiptEntries = [];
                 financeTransactions = [];
-visitors = [];
+                visitors = [];
                 complains = [];
-                daybookEntries = []; // New
+                daybookEntries = [];
 
-                // Clear tables
+                // Clear tables (optional, as they will be re-rendered on next login)
                 receiptTableBody.innerHTML = '';
                 financeTableBody.innerHTML = '';
                 visitorTableBody.innerHTML = '';
                 complainTableBody.innerHTML = '';
-                daybookTableBody.innerHTML = ''; // New
+                daybookTableBody.innerHTML = '';
 
-                updateDashboardMetrics();
+                updateDashboardMetrics(); // Clear dashboard metrics on logout
                 filterInput.value = '';
 
                 // Reset login fields (and set default values for convenience)
@@ -1331,11 +1350,10 @@ visitors = [];
         setTodayDate(financeDateInput);
         setTodayDate(visitorDateInput);
         setTodayDate(complainDateInput);
-        setTodayDate(daybookDateInput); // New
+        setTodayDate(daybookDateInput);
 
         // Set current time for relevant time inputs
         setCurrentTime(timeInInput);
-        // setCurrentTime(daybookTimeInput); // Removed time from daybook
 
         // Start time update
         updateDateTime();
